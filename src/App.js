@@ -1,18 +1,47 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { observable, autorun } from 'mobx';
+import ScenarioEditor from './components/ScenarioEditor';
+import Scenario from './lib/Scenario';
+import Database from './lib/Database';
 
 class App extends Component {
+  @observable scenario;
+  constructor() {
+    super();
+    const state = {};
+    try {
+      Object.assign(state, JSON.parse(localStorage.getItem('state')));
+    } catch (e) {
+      // Ignores.
+    }
+    this.scenario = new Scenario(new Database(), state);
+    let first = true;
+    autorun(() => {
+      const data = JSON.stringify(this.scenario);
+      if (first) {
+        first = false;
+        return;
+      }
+      try {
+        //console.log('autorun', JSON.parse(data));
+        localStorage.setItem('state', data);
+      } catch (e) {
+        // Ignores.
+      }
+    }, { delay: 1000 });
+    this.state = { key: 0 };
+  }
+
+  onReset = () => {
+    this.scenario = new Scenario(new Database());
+    this.setState({ key: this.state.key + 1 });
+  }
+
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <ScenarioEditor key={this.state.key} scenario={this.scenario} onReset={this.onReset}/>
       </div>
     );
   }

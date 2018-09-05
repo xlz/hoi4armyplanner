@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "HoI4 Army Planner",
+  "name": "Design for Army Composition in Hearts of Iron IV",
   "icons": [
     {
       "src": "favicon.ico",
