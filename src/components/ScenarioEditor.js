@@ -1,6 +1,13 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import  { Container, Grid, Header, Label, Dropdown, List } from 'semantic-ui-react';
+import Checkbox from 'semantic-ui-react/dist/es/modules/Checkbox';
+import Container from 'semantic-ui-react/dist/es/elements/Container';
+import Dropdown from 'semantic-ui-react/dist/es/modules/Dropdown';
+import Grid from 'semantic-ui-react/dist/es/collections/Grid';
+import Header from 'semantic-ui-react/dist/es/elements/Header';
+import Input from 'semantic-ui-react/dist/es/elements/Input';
+import Label from 'semantic-ui-react/dist/es/elements/Label';
+import List from 'semantic-ui-react/dist/es/elements/List';
 import CountryEditor from './CountryEditor';
 import DivisionEditor from './DivisionEditor';
 
@@ -11,7 +18,13 @@ import DivisionEditor from './DivisionEditor';
     return <Container>
       <Header size='medium' dividing>
         Scenario
-        <Label size='small' as='a' basic onClick={this.props.onReset}>Reset</Label>
+        <Label size='medium' as='a' basic onClick={this.props.onReset}>Reset</Label>
+        <Label basic>
+          <Dropdown text='Load' selectOnBlur={false} options={[
+            { key: 1, text: 'Test 1', value: 1 },
+          ]} onChange={(e, d) => { console.log(d); }}/>
+        </Label>
+        <Input transparent placeholder='Set Title...' size='mini'/>
       </Header>
       <List>
         <List.Item>
@@ -22,8 +35,7 @@ import DivisionEditor from './DivisionEditor';
                 key: i + s.startYear,
                 text: i + s.startYear,
                 value: i + s.startYear,
-              }))
-          }/>
+              }))}/>
           <span> (starting from {s.startYear})</span>
         </List.Item>
         <List.Item>
@@ -31,9 +43,19 @@ import DivisionEditor from './DivisionEditor';
         </List.Item>
         <List.Item>
           <span>Air Superiority: </span>
+          <Dropdown placeholder='Neither' defaultValue={s.air.winner} selectOnBlur={false} inline
+            onChange={(e, d) => { s.setAir(d.value, s.air.buffed); }} options={[
+              { key: 'null', text: 'Neither', value: null },
+              { key: 'attacker', text: '100% Attacker', value: 'attacker' },
+              { key: 'defender', text: '100% Defender', value: 'defender' },
+          ]}/>
+          { s.air.winner && <Checkbox checked={s.air.buffed} label='With Air Doctrine'
+            onChange={(e, d) => { s.setAir(s.air.winner, d.checked); }}/> }
         </List.Item>
         <List.Item>
-          <span>Use Planning: </span>
+          <span>Planning: </span>
+          <Checkbox checked={s.usePlanning} label='Use'
+            onChange={(e, d) => { s.setUsePlanning(d.checked); }} />
         </List.Item>
       </List>
       <Grid columns={2}>

@@ -24,7 +24,8 @@ import  { Dropdown, List } from 'semantic-ui-react';
             selectOnBlur={false} inline onChange={(e, d) => { country.setArmyChief(d.value); }}
             options={['', ...country.armyChiefNames].map(e => (
               { key: e, text: e ? l10n.traits[e] : `No ${l10n.ideas.army_chief}`, value: e }))}/>}
-          <Dropdown placeholder={l10n.ideas.high_command} value={country.highCommand}
+          <Dropdown placeholder={l10n.ideas.high_command} value={country.highCommand} closeOnChange={true}
+            renderLabel={label => ({ content: label.text, basic: true })}
             selectOnBlur={false} multiple inline onChange={(e, d) => { country.setHighCommand(d.value); }}
             options={(country.highCommandNames.length ? country.highCommandNames : country.highCommand).map(e => (
               { key: e, text: l10n.traits[e], value: e }))}/>
@@ -39,12 +40,13 @@ import  { Dropdown, List } from 'semantic-ui-react';
             options={['', ...country.airChiefNames].map(e => (
               { key: e, text: e ? l10n.traits[e] : `No ${l10n.ideas.air_chief}`, value: e }))}/>}
           { country.advisorCountries !== true &&
-            <Dropdown text='(Possible Countries)' selectOnBlur={false} options={
+            <Dropdown text='(Possible Countries)' selectOnBlur={false} scrolling={true} options={
               country.advisorCountries.map(e => ({ key: e, text: db.common.country_tags[e], value: e }))}/>}
         </List.Item>
         <List.Item>
           <span>Ideas: </span>
           <Dropdown placeholder={l10n.ideas.country} value={country.ideas} scrolling={true}
+            renderLabel={label => ({ content: label.text, basic: true })}
             selectOnBlur={false} multiple inline onChange={(e, d) => { country.setIdeas(d.value); }}
             options={(country.ideaNames.length ? country.ideaNames : country.ideas).map((e) => {
               const countries = [...new Set(db.common.ideas.country[e].countries)];
@@ -53,13 +55,15 @@ import  { Dropdown, List } from 'semantic-ui-react';
         </List.Item>
         <List.Item>
           <span>Doctrine: </span>
-          <Dropdown defaultValue={country.doctrine} selectOnBlur={false} inline
+          <Dropdown defaultValue={country.doctrine} selectOnBlur={false} inline upward={false}
             onChange={(e, d) => { country.setDoctrine(d.value); }} options={
-            db.landDoctrineNames.map(e => ({ key: e, text: e, value: e }))}/>
+              db.landDoctrineNames.map(e => ({ key: e, text: e, value: e }))}/>
         </List.Item>
         <List.Item>
           <span>Field Marshal: </span>
-
+          <Dropdown placeholder='Level' value={country.fieldMarshal.level} selectOnBlur={false} inline
+            onChange={(e, d) => { console.log(d.value); }} options={[]
+          }/>
         </List.Item>
         <List.Item>General:</List.Item>
         <List.Item>Upgrades:</List.Item>

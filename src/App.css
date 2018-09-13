@@ -7,13 +7,26 @@
   line-height: 1.2;
 }
 
-.App small {
-  font-size: 85%;
+.App pre {
+  margin: 0;
 }
 
 .App .label {
   user-select: none;
   cursor: default;
+}
+
+.App .ui.accordion {
+  margin: 0.5rem 0;
+}
+
+.App .ui.accordion .title {
+  padding: 0;
+}
+
+.App .ui.checkbox label {
+  padding-left: 20px;
+  font-size: 12px;
 }
 
 .App .ui.dropdown > .dropdown.icon {
@@ -24,8 +37,19 @@
   font-size: 12px;
 }
 
+.App .ui.dropdown .menu > .item {
+  font-size: 12px;
+}
+
+.ui.header {
+  margin-top: 1rem;
+}
+
 .App .ui.inline.dropdown {
   margin: 0 4px 2px 0;
+}
+
+.App .ui.input > input {
 }
 
 .App .ui.multiple.dropdown {
@@ -38,14 +62,17 @@
 
 .App .ui.multiple.dropdown > .label {
   vertical-align: baseline;
+  display: inline-flex;
+  box-shadow: none;
+  padding: 4px 7px;
 }
 
 .App .ui.label {
-  padding: 5px 7px;
+  padding: 4px 7px;
 }
 
 .App .ui.labels > .label {
-  margin: 0 4px 4px 0;
+  margin: 2px 4px 2px 0;
 }
 
 .stats, p.stats {

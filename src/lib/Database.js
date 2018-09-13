@@ -136,6 +136,14 @@ class Database {
     return Object.keys(this.common.ideas.country);
   }
 
+
+  @computed get fieldMarshalLevels() {
+    const result = {};
+    const addSkills = (obj, name) => {
+    };
+    //Object.keys(this.common.unit_leader).forEach(());
+  }
+
   @computed get maxYear() {
     let max = 0;
     Object.keys(this.common.technologies).forEach((category) => {

@@ -7,6 +7,7 @@ class Scenario {
   @observable defender;
   @observable terrain;
   @observable air;
+  @observable usePlanning;
 
   constructor(db, state = {}) {
     this.db = db;
@@ -16,6 +17,7 @@ class Scenario {
     this.defender = new Country(db, this, state.defender);
     this.terrain = { ...state.terrain };
     this.air = { winner: null, buffed: false, ...state.air };
+    this.usePlanning = state.usePlanning || false;
     // attrition
     // am attacker
   }
@@ -35,6 +37,10 @@ class Scenario {
 
   @action setAir(winner, buffed) {
     this.air = { winner, buffed };
+  }
+
+  @action setUsePlanning(value) {
+    this.usePlanning = value;
   }
 }
 

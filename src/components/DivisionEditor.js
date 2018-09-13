@@ -38,7 +38,7 @@ function stringify(obj, root = true) {
       </pre>
       <Accordion panels={[{
         key: 0,
-        title: 'Full stats',
+        title: 'Full Stats',
         content: {
           content: (
             <pre className='stats'>
@@ -47,47 +47,55 @@ function stringify(obj, root = true) {
           )
         }
       }]}/>
-      <Label.Group>
-      { Object.keys(units).filter(e => units[e]).map(unit =>
-        <Label key={unit} basic size='small'>
-            { possibleUnits[db.groupByUnit[unit]] && possibleUnits[db.groupByUnit[unit]].includes(unit) &&
-              <Icon name='plus' link onClick={() => { division.addUnit(unit); }} /> }
-            <Icon name='minus' link onClick={() => { division.removeUnit(unit); }} />
-          {l10n.unit[unit]}
-          { units[unit] > 1 && <Label.Detail>x{units[unit]}</Label.Detail> }
-        </Label>)}
-      </Label.Group>
-      <Label.Group>
-        { Object.keys(possibleUnits).length > 1 &&
-          <span>New unit: </span>
-        }
-        { Object.keys(possibleUnits).map((group) => {
-            if (!possibleUnits[group]) return null;
-            const options = possibleUnits[group].filter(e => !units[e])
-              .map(e => ({ key: e, text: l10n.unit[e].replace(/^Support | Company$/, ''), value: e}));
-            return <Label key={group} size='medium' basic>
-              <Dropdown text={group} options={options} selectOnBlur={false} basic scrolling={options.length > 10}
-                onChange={(e, d) => { division.addUnit(d.value); }}/>
-            </Label>;
-        })}
-      </Label.Group>
-      <Label.Group>
-        { division.neededArchetypes.filter(e => division.possibleEquipmentNames[e].length > 1).length > 0 &&
-          <span>Equipment options: </span>
-        }
-        { division.neededArchetypes.map((arch) => {
-            if (division.possibleEquipmentNames[arch].length === 1) return false;
-            const possible = division.possibleEquipmentNames[arch];
-            const options = possible.map(e => ({ key: e, text: l10n.equipment[e], value: e }));
-            const archName = (l10n.equipment[`${arch}_1`] || l10n.equipment[arch]).replace(/ I$/, '');
-            options.unshift({ key: false, text: `(Current)`, value: false});
-            return <Label key={arch} size='medium' basic>
-              <Dropdown arch={arch} text={archName} selectOnBlur={false} basic
-                defaultValue={division.equipmentNames[arch] || false}
-                options={options} onChange={(e, d) => { division.setEquipmentName(arch, d.value); }}/>
-            </Label>
-        })}
-      </Label.Group>
+      <Accordion panels={[{
+        key: 0,
+        title: 'Edit',
+        content: {
+          content: <React.Fragment>
+            <Label.Group>
+            { Object.keys(units).filter(e => units[e]).map(unit =>
+              <Label key={unit} basic size='small'>
+                  { possibleUnits[db.groupByUnit[unit]] && possibleUnits[db.groupByUnit[unit]].includes(unit) &&
+                    <Icon name='plus' link onClick={() => { division.addUnit(unit); }} /> }
+                  <Icon name='minus' link onClick={() => { division.removeUnit(unit); }} />
+                {l10n.unit[unit]}
+                { units[unit] > 1 && <Label.Detail>x{units[unit]}</Label.Detail> }
+              </Label>)}
+            </Label.Group>
+            <Label.Group>
+              { Object.keys(possibleUnits).length > 1 &&
+                <span>New unit type: </span>
+              }
+              { Object.keys(possibleUnits).map((group) => {
+                  if (!possibleUnits[group]) return null;
+                  const options = possibleUnits[group].filter(e => !units[e])
+                    .map(e => ({ key: e, text: l10n.unit[e].replace(/^Support | Company$/, ''), value: e}));
+                  return <Label key={group} size='medium' basic>
+                    <Dropdown text={group} options={options} selectOnBlur={false} basic scrolling={options.length > 10}
+                      onChange={(e, d) => { division.addUnit(d.value); }}/>
+                  </Label>;
+              })}
+            </Label.Group>
+            <Label.Group>
+              { division.neededArchetypes.filter(e => division.possibleEquipmentNames[e].length > 1).length > 0 &&
+                <span>Equipment options: </span>
+              }
+              { division.neededArchetypes.map((arch) => {
+                  if (division.possibleEquipmentNames[arch].length === 1) return false;
+                  const possible = division.possibleEquipmentNames[arch];
+                  const options = possible.map(e => ({ key: e, text: l10n.equipment[e], value: e }));
+                  const archName = (l10n.equipment[`${arch}_1`] || l10n.equipment[arch]).replace(/ I$/, '');
+                  options.unshift({ key: false, text: `(Current)`, value: false});
+                  return <Label key={arch} size='medium' basic>
+                    <Dropdown arch={arch} text={archName} selectOnBlur={false} basic
+                      defaultValue={division.equipmentNames[arch] || false}
+                      options={options} onChange={(e, d) => { division.setEquipmentName(arch, d.value); }}/>
+                  </Label>
+              })}
+            </Label.Group>
+          </React.Fragment>,
+        },
+      }]}/>
     </React.Fragment>;
   }
 };
