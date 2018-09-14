@@ -64,7 +64,7 @@ function stringify(obj, root = true) {
             </Label.Group>
             <Label.Group>
               { Object.keys(possibleUnits).length > 1 &&
-                <span>New unit type: </span>
+                <span>New unit: </span>
               }
               { Object.keys(possibleUnits).map((group) => {
                   if (!possibleUnits[group]) return null;
@@ -87,7 +87,7 @@ function stringify(obj, root = true) {
                   const archName = (l10n.equipment[`${arch}_1`] || l10n.equipment[arch]).replace(/ I$/, '');
                   options.unshift({ key: false, text: `(Current)`, value: false});
                   return <Label key={arch} size='medium' basic>
-                    <Dropdown arch={arch} text={archName} selectOnBlur={false} basic
+                    <Dropdown arch={arch} text={archName} selectOnBlur={false}
                       defaultValue={division.equipmentNames[arch] || false}
                       options={options} onChange={(e, d) => { division.setEquipmentName(arch, d.value); }}/>
                   </Label>

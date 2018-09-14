@@ -20,11 +20,11 @@ import DivisionEditor from './DivisionEditor';
         Scenario
         <Label size='medium' as='a' basic onClick={this.props.onReset}>Reset</Label>
         <Label basic>
-          <Dropdown text='Load' selectOnBlur={false} options={[
-            { key: 1, text: 'Test 1', value: 1 },
+          <Dropdown text='Load Presets' selectOnBlur={false} options={[
+            { key: 1, text: 'GER vs SOV 1940', value: 1 },
+            { key: 2, text: 'GER vs USA 1942', value: 2 },
           ]} onChange={(e, d) => { console.log(d); }}/>
         </Label>
-        <Input transparent placeholder='Set Title...' size='mini'/>
       </Header>
       <List>
         <List.Item>

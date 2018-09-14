@@ -20,7 +20,7 @@ import  { Dropdown, List } from 'semantic-ui-react';
         <List.Item>
           <span>Advisors: </span>
           { country.armyChiefNames.length > 0 &&
-            <Dropdown placeholder={l10n.ideas.army_chief} value={country.armyChief}
+            <Dropdown placeholder={`No ${l10n.ideas.army_chief}`} country={country} value={country.armyChief}
             selectOnBlur={false} inline onChange={(e, d) => { country.setArmyChief(d.value); }}
             options={['', ...country.armyChiefNames].map(e => (
               { key: e, text: e ? l10n.traits[e] : `No ${l10n.ideas.army_chief}`, value: e }))}/>}

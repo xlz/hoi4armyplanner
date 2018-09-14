@@ -37,6 +37,14 @@
   font-size: 12px;
 }
 
+.App .ui.basic.label > .ui.dropdown .menu {
+  margin: 1rem 0 1rem -7px;
+}
+
+.App .ui.dropdown .menu {
+  margin: 0.5rem 0;
+}
+
 .App .ui.dropdown .menu > .item {
   font-size: 12px;
 }
@@ -62,7 +70,6 @@
 
 .App .ui.multiple.dropdown > .label {
   vertical-align: baseline;
-  display: inline-flex;
   box-shadow: none;
   padding: 4px 7px;
 }
