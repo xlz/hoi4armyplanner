@@ -31,8 +31,12 @@ class Country {
     this.airChief = state.airChief || '';
     this.ideas = state.ideas || [];
     this.doctrine = state.doctrine || 'SFRR';
-    this.fieldMarshal = { ...state.fieldMarshal };
-    this.general = { ...state.general };
+    this.fieldMarshal = {
+      level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [], ...state.fieldMarshal,
+    };
+    this.general = {
+      level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [], ...state.general,
+    };
     this.division = new Division(db, this, state.division);
     this.upgrades = {};
     Object.keys(state.upgrades || {}).forEach((arch) => {
@@ -130,6 +134,14 @@ class Country {
 
   @action setIdeas(value) {
     this.ideas = value;
+  }
+
+  @action setFieldMarshal(value) {
+    Object.assign(this.fieldMarshal, value);
+  }
+
+  @action setGeneral(value) {
+    Object.assign(this.general, value);
   }
 
   @computed get year() {

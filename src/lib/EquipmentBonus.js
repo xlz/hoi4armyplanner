@@ -1,6 +1,4 @@
-import Bonus from './Bonus';
-
-const properties = {
+const props = {
   air_attack: 0,
   ap_attack: 0,
   armor_value: 0,
@@ -14,11 +12,31 @@ const properties = {
   soft_attack: 0,
 };
 
-class EquipmentBonus extends Bonus {
+const keys = Object.keys(props);
+
+class EquipmentBonus {
   constructor(obj) {
-    super(obj);
-    Object.assign(this, { ...properties, ...this });
-    Object.seal(this);
+    Object.assign(this, props);
+    this.add(obj);
+  }
+
+  add(obj) {
+    if (!obj) return;
+    keys.forEach((key) => {
+      if (key in obj) {
+        this[key] += obj[key];
+      }
+    });
+  }
+
+  applyTo(obj) {
+    const newObj = { ...obj };
+    keys.forEach((key) => {
+      if (key in obj) {
+        newObj[key] *= 1 + this[key];
+      }
+    });
+    return newObj;
   }
 }
 

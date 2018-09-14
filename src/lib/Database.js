@@ -136,12 +136,43 @@ class Database {
     return Object.keys(this.common.ideas.country);
   }
 
-
-  @computed get fieldMarshalLevels() {
-    const result = {};
-    const addSkills = (obj, name) => {
+  getSkills(leaderType) {
+    const getLevels = (obj) => {
+      const res = {};
+      Object.keys(obj).forEach((level) => {
+        res[level] = obj[level].filter(e => e.type === leaderType)[0];
+      });
+      return res;
     };
-    //Object.keys(this.common.unit_leader).forEach(());
+    const leader = this.common.unit_leader;
+    const result = {
+      level: getLevels(leader.leader_skills),
+      attack: getLevels(leader.leader_attack_skills),
+      defense: getLevels(leader.leader_defense_skills),
+      logistics: getLevels(leader.leader_logistics_skills),
+      planning: getLevels(leader.leader_planning_skills),
+      traits: {},
+      terrain: {},
+    };
+    const traits = this.common.unit_leader.leader_traits;
+    Object.keys(traits).slice().sort().forEach((key) => {
+      const { type, trait_type } = traits[key];
+      if (type === 'all' || type === leaderType || (type === 'corps_commander' && leaderType === 'field_marshal')) {
+        if (!trait_type || trait_type === 'assignable_trait') {
+          result.traits[key] = traits[key];
+        } else if (trait_type === 'basic_terrain_trait' || trait_type === 'assignable_terrain_trait') {
+          result.terrain[key] = traits[key];
+        }
+      }
+    });
+    return result;
+  }
+
+  @computed get skills() {
+    return {
+      field_marshal: this.getSkills('field_marshal'),
+      general: this.getSkills('corps_commander'),
+    };
   }
 
   @computed get maxYear() {

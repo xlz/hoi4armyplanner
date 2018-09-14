@@ -5,7 +5,6 @@ import Container from 'semantic-ui-react/dist/es/elements/Container';
 import Dropdown from 'semantic-ui-react/dist/es/modules/Dropdown';
 import Grid from 'semantic-ui-react/dist/es/collections/Grid';
 import Header from 'semantic-ui-react/dist/es/elements/Header';
-import Input from 'semantic-ui-react/dist/es/elements/Input';
 import Label from 'semantic-ui-react/dist/es/elements/Label';
 import List from 'semantic-ui-react/dist/es/elements/List';
 import CountryEditor from './CountryEditor';
