@@ -2,6 +2,29 @@ import assert from 'assert';
 import { observable, computed, action } from 'mobx';
 import Division from './Division';
 import Upgrade from './Upgrade';
+import { removeFalsies } from './utils';
+
+const defaultProps = {
+  tradeLaw: 'export_focus',
+  mobilizationLaw: 'limited_conscription',
+  armyChief: '',
+  highCommand: [],
+  tankManufacturer: '',
+  airChief: '',
+  ideas: [],
+  doctrine: 'SFRR',
+  fieldMarshal: {
+    level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [],
+  },
+  general: {
+    level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [],
+  },
+  division: {},
+  upgrades: {},
+  density: 1,
+  factories: 10,
+  supply: 100,
+};
 
 class Country {
   @observable tradeLaw;
@@ -17,38 +40,23 @@ class Country {
   @observable division;
   @observable upgrades;
   @observable density;
-  @observable numFactories;
+  @observable factories;
+  @observable supply;
 
   // Country is tied to Scenario.
   constructor(db, scenario, state = {}) {
     this.db = db;
     this.scenario = scenario;
-    this.tradeLaw = state.tradeLaw || 'export_focus';
-    this.mobilizationLaw = state.mobilizationLaw || 'limited_conscription';
-    this.armyChief = state.armyChief || '';
-    this.highCommand = state.highCommand || [];
-    this.tankManufacturer = state.tankManufacturer || '';
-    this.airChief = state.airChief || '';
-    this.ideas = state.ideas || [];
-    this.doctrine = state.doctrine || 'SFRR';
-    this.fieldMarshal = {
-      level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [], ...state.fieldMarshal,
-    };
-    this.general = {
-      level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [], terrain: [], ...state.general,
-    };
-    this.division = new Division(db, this, state.division);
-    this.upgrades = {};
-    Object.keys(state.upgrades || {}).forEach((arch) => {
-      this.upgrades[arch] = new Upgrade(db, state.upgrades[arch]);
+    Object.assign(this, { ...defaultProps, ...state });
+    this.division = new Division(db, this, this.division);
+    Object.keys(this.upgrades).forEach((arch) => {
+      this.upgrades[arch] = new Upgrade(db, arch, this.upgrades[arch]);
     });
-    this.density = state.density || 1;
-    this.numFactories = state.numFactories || 10;
   }
 
   toJSON() {
-    const { db, scenario, ...state } = this;
-    return state;
+    const { db, scenario, upgrades, ...state } = this;
+    return { ...state, upgrades: removeFalsies(this.upgrades) };
   }
 
   @computed get advisorCountries() {
@@ -104,6 +112,14 @@ class Country {
     return this.getAdvisorNames(this.db.ideaNames, this.db.common.ideas.country);
   }
 
+  @computed get variantNames() {
+    return this.db.upgradeableArchetypes.filter(e => this.upgrades[e]);
+  }
+
+  @computed get possibleVariantNames() {
+    return this.db.upgradeableArchetypes.filter(e => !this.upgrades[e]);
+  }
+
   @action setDoctrine(value) {
     this.doctrine = value;
   }
@@ -120,7 +136,7 @@ class Country {
     this.armyChief = value;
   }
 
-  @action setHighCommand(value) {
+  @action.bound setHighCommand(value) {
     this.highCommand = value;
   }
 
@@ -132,7 +148,7 @@ class Country {
     this.airChief = value;
   }
 
-  @action setIdeas(value) {
+  @action.bound setIdeas(value) {
     this.ideas = value;
   }
 
@@ -142,6 +158,26 @@ class Country {
 
   @action setGeneral(value) {
     Object.assign(this.general, value);
+  }
+
+  @action addUpgrade(archetype) {
+    this.upgrades[archetype] = new Upgrade(this.db, archetype);
+  }
+
+  @action removeUpgrade(archetype) {
+    this.upgrades[archetype] = undefined;
+  }
+
+  @action setDensity(value) {
+    this.density = value;
+  }
+
+  @action setFactories(value) {
+    this.factories = value;
+  }
+
+  @action setSupply(value) {
+    this.supply = value;
   }
 
   @computed get year() {

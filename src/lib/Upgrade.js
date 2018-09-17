@@ -5,8 +5,9 @@ import EquipmentBonus from './EquipmentBonus';
 class Upgrade {
   @observable levels;
 
-  constructor(db, state = {}) {
+  constructor(db, archetype, state = {}) {
     this.db = db;
+    this.archetype = archetype;
     this.levels = { ...state };
   }
 
@@ -14,19 +15,27 @@ class Upgrade {
     return this.levels;
   }
 
-  @action setLevel(name, level) {
-    const up = this.db.common.upgrades[name];
+  @computed get types() {
+    return this.db.common.equipments[this.archetype].upgrades;
+  }
+
+  getLevels(type) {
+    return [...Array(this.db.common.upgrades[type].max_level + 1).keys()];
+  }
+
+  @action setLevel(type, level) {
+    const up = this.db.common.upgrades[type];
     assert(up, 'No such upgrade');
     assert(level >= 0, 'Negative level');
     assert(level <= up.max_level, 'Exceeds maximum level');
-    this.levels[name] = level;
+    this.levels[type] = level;
   }
 
   @computed get bonus() {
     const b = EquipmentBonus();
-    Object.keys(this.levels).forEach((name) => {
-      const up = this.db.common.upgrades[name];
-      for (let i = 0; i < this.levels[name]; ++i) {
+    Object.keys(this.levels).forEach((type) => {
+      const up = this.db.common.upgrades[type];
+      for (let i = 0; i < this.levels[type]; ++i) {
         b.add(up);
       }
     });

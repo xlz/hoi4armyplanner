@@ -9,13 +9,14 @@ class App extends Component {
   @observable scenario;
   constructor() {
     super();
+    this.db = new Database();
     const state = {};
     try {
       Object.assign(state, JSON.parse(localStorage.getItem('state')));
     } catch (e) {
       // Ignores.
     }
-    this.scenario = new Scenario(new Database(), state);
+    this.scenario = new Scenario(this.db, state);
     let first = true;
     autorun(() => {
       const data = JSON.stringify(this.scenario);
@@ -34,14 +35,15 @@ class App extends Component {
   }
 
   onReset = () => {
-    this.scenario = new Scenario(new Database());
+    this.scenario = new Scenario(this.db);
     this.setState({ key: this.state.key + 1 });
   }
 
   render() {
     return (
       <div className="App">
-        <ScenarioEditor key={this.state.key} scenario={this.scenario} onReset={this.onReset}/>
+        <ScenarioEditor key={this.state.key} onReset={this.onReset}
+          scenario={this.scenario} db={this.db} l10n={this.db.l10n}/>
       </div>
     );
   }

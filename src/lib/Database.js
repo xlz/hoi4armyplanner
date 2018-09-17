@@ -1,6 +1,7 @@
 import { computed } from 'mobx'
 import hoi4 from '../data/db.json';
 import Bonus from './Bonus';
+import { capitalize } from './utils';
 
 class Database {
   constructor(db = hoi4) {
@@ -31,8 +32,31 @@ class Database {
     return Object.keys(this.common.equipments);
   }
 
+  equipmentShortName(key) {
+    return (this.l10n.equipment[`${key}_1`] || this.l10n.equipment[key])
+      .replace(/ I$/, '').replace(/^Modern/, 'Mod.');
+  }
+
+  upgradeCode(name) {
+    const code = name.split('_').slice(-2)[0];
+    return code.length > 2 ? capitalize(code) : code.toUpperCase();
+  }
+
+  @computed get continentNames() {
+    return Object.keys(this.map.strategic_regions);
+  }
+
   @computed get terrainNames() {
-    return [...Object.keys(this.common.terrain.categories), 'fort', 'river', 'amphibious'];
+    const { categories } = this.common.terrain;
+    const names = Object.keys(categories).filter(e => !categories[e].is_water && e !== 'unknown');
+    return [...names, 'fort', 'river', 'amphibious'];
+  }
+
+  @computed get upgradeableArchetypes() {
+    return this.archetypeNames.filter((e) => {
+      const { upgrades } = this.common.equipments[e];
+      return Array.isArray(upgrades) && upgrades.length > 0 && this.common.upgrades[upgrades[0]].cost === 'land';
+    });
   }
 
   @computed get upgradeNames() {

@@ -11,6 +11,19 @@
   margin: 0;
 }
 
+.App pre .left {
+  float: left;
+}
+
+.App pre .right {
+  float: right;
+}
+
+.App abbr[title] {
+  cursor: help;
+  text-decoration: none;
+}
+
 .App .label {
   user-select: none;
   cursor: default;
@@ -24,6 +37,10 @@
   padding: 0;
 }
 
+.App .ui.checkbox {
+  margin: 0 0.2em;
+}
+
 .App .ui.checkbox label {
   padding-left: 20px;
   font-size: 12px;
@@ -31,14 +48,11 @@
 
 .App .ui.dropdown > .dropdown.icon {
   margin-left: 0.2em;
+  margin-right: 0;
 }
 
 .App .ui.dropdown {
   font-size: 12px;
-}
-
-.App .ui.basic.label > .ui.dropdown .menu {
-  margin: 1rem 0 1rem -7px;
 }
 
 .App .ui.dropdown .menu {
@@ -49,26 +63,27 @@
   font-size: 12px;
 }
 
-.ui.header {
-  margin-top: 1rem;
+.App .ui.dropdown.inline {
+/*  margin: 0 4px 2px 0;*/
 }
 
-.App .ui.inline.dropdown {
-  margin: 0 4px 2px 0;
+.App .ui.header {
+  margin-top: 0;
 }
 
 .App .ui.input > input {
+  padding: 4px 7px;
 }
 
-.App .ui.multiple.dropdown {
+.App .ui.dropdown.multiple {
   padding: 0;
 }
 
-.App .ui.multiple.dropdown > .text {
+.App .ui.dropdown.multiple > .text {
   margin: 0;
 }
 
-.App .ui.multiple.dropdown > .label {
+.App .ui.dropdown.multiple > .label {
   vertical-align: baseline;
   box-shadow: none;
   padding: 4px 7px;
@@ -78,12 +93,28 @@
   padding: 4px 7px;
 }
 
+.App .ui.label {
+  margin: 2px 4px 2px 0;
+}
+
 .App .ui.labels > .label {
   margin: 2px 4px 2px 0;
+}
+
+.App .ui.label > .detail {
+  margin-left: 0.25em;
+}
+
+.App .ui.label.basic > .ui.dropdown .menu {
+  margin: 1rem 0 1rem -8px;
+}
+
+.App .ui.label.basic.add {
+  border-style: dashed;
+  font-weight: normal;
 }
 
 .stats, p.stats {
   font-size: 12px;
   line-height: 1;
 }
-

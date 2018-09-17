@@ -4,23 +4,7 @@ import Equipment from './Equipment';
 import EquipmentBonus from './EquipmentBonus';
 import UnitBonus from './UnitBonus';
 import Bonus from './Bonus';
-
-const util = {
-  min: array => array.length && Math.min(...array),
-  max: array => array.length && Math.max(...array),
-  sum: array => array.length && array.reduce((a, b) => a + b, 0),
-  avg: array => array.length && array.reduce((a, b) => a + b, 0) / array.length,
-};
-
-function removeFalsyValues(obj) {
-  const result = {};
-  Object.keys(obj).forEach((key) => {
-    if (obj[key]) {
-      result[key] = obj[key];
-    }
-  });
-  return result;
-}
+import { min, max, avg, removeFalsies } from './utils';
 
 class Division {
   @observable country;
@@ -31,22 +15,13 @@ class Division {
     this.db = db;
     this.country = country;
     this.units = { ...state.units };
-    if (Object.keys(this.units).length === 0) {
-      Object.assign(this.units, {
-        infantry: 10,
-        engineer: 1,
-        artillery: 1,
-        recon: 1,
-        anti_tank: 1,
-      });
-    }
     this.equipmentNames = { ...state.equipmentNames };
   }
 
   toJSON() {
     return {
-      units: removeFalsyValues(this.units),
-      equipmentNames: removeFalsyValues(this.equipmentNames),
+      units: removeFalsies(this.units),
+      equipmentNames: removeFalsies(this.equipmentNames),
     };
   }
 
@@ -130,6 +105,10 @@ class Division {
       names[arch] = equipmentNames.filter(e => equipments[e].archetype === arch);
     });
     return names;
+  }
+
+  @computed get selectableArchetypes() {
+    return this.neededArchetypes.filter(e => this.possibleEquipmentNames[e].length > 1);
   }
 
   @computed get defaultEquipmentNames() {
@@ -227,17 +206,17 @@ class Division {
       ARMOR_VS_AVERAGE,
       SLOWEST_SPEED,
     } = this.db.common.defines.NDefines.NMilitary;
-    total.ap_attack = PEN_VS_AVERAGE * util.max(all.map(e => e.ap_attack)) +
-      (1 - PEN_VS_AVERAGE) * util.avg(all.map(e => e.ap_attack));
-    total.armor_value = ARMOR_VS_AVERAGE * util.max(all.map(e => e.armor_value)) +
-      (1 - ARMOR_VS_AVERAGE) * util.avg(all.map(e => e.armor_value));
-    total.hardness = util.avg(frontline.map(e => e.hardness));
-    total.maximum_speed = all.length && Math.max(util.min(frontline.map(e => e.maximum_speed)), SLOWEST_SPEED);
+    total.ap_attack = PEN_VS_AVERAGE * max(all.map(e => e.ap_attack)) +
+      (1 - PEN_VS_AVERAGE) * avg(all.map(e => e.ap_attack));
+    total.armor_value = ARMOR_VS_AVERAGE * max(all.map(e => e.armor_value)) +
+      (1 - ARMOR_VS_AVERAGE) * avg(all.map(e => e.armor_value));
+    total.hardness = avg(frontline.map(e => e.hardness));
+    total.maximum_speed = all.length && Math.max(min(frontline.map(e => e.maximum_speed)), SLOWEST_SPEED);
     total.reliability = 0;
 
     total.default_morale = all.length && total.default_morale / all.length;
     total.max_organisation = all.length && total.max_organisation / all.length;
-    total.training_time = util.max(all.map(e => e.training_time));
+    total.training_time = max(all.map(e => e.training_time));
 
     this.db.terrainNames.forEach((terrain) => {
       const bonus = {};
