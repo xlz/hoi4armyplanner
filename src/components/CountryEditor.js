@@ -125,9 +125,10 @@ const Upgrades = observer(({ country, db }) =>
       </Label>}
     { country.variantNames.map(arch =>
       <Label.Group key={arch}>
-        <Label size='medium' basic>
+        <Label size='medium' basic className='delete'
+          onClick={() => { country.removeUpgrade(arch); }}>
           {db.equipmentShortName(arch)}
-          <Icon name='delete' link onClick={() => { country.removeUpgrade(arch); }}/>
+          <Icon name='delete'/>
         </Label>
         { country.upgrades[arch].types.map(type =>
           <LabelDropdown key={type}

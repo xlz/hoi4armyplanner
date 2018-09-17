@@ -9,9 +9,10 @@ const LabelTray = ({ options, selected, addLabel, onChange, l10n }) => {
       <LabelDropdown add text={addLabel} options={unselected}
         onChange={(e, d) => { onChange([...selected, d.value]); }}/>}
     { selected.length > 0 && selected.map(e =>
-      <Label key={e} size='medium' basic>
+      <Label key={e} size='medium' basic className='delete'
+        onClick={() => { onChange(selected.filter(f => f !== e)); }}>
         {l10n ? l10n[e] : e}
-        <Icon name='delete' link onClick={() => { onChange(selected.filter(f => f !== e)); }}/>
+        <Icon name='delete'/>
       </Label>)}
   </React.Fragment>;
 };

@@ -11,22 +11,9 @@
   margin: 0;
 }
 
-.App pre .left {
-  float: left;
-}
-
-.App pre .right {
-  float: right;
-}
-
 .App abbr[title] {
   cursor: help;
   text-decoration: none;
-}
-
-.App .label {
-  user-select: none;
-  cursor: default;
 }
 
 .App .ui.accordion {
@@ -90,15 +77,14 @@
 }
 
 .App .ui.label {
+  cursor: default;
+  user-select: none;
   padding: 4px 7px;
-}
-
-.App .ui.label {
   margin: 2px 4px 2px 0;
 }
 
-.App .ui.labels > .label {
-  margin: 2px 4px 2px 0;
+.App .ui.label.delete {
+  cursor: pointer;
 }
 
 .App .ui.label > .detail {
