@@ -23,14 +23,6 @@ class Equipment {
     return b;
   }
 
-  getUpgradeCost() {
-    assert(Object.values(this.upgradeObjects).every(e => e.cost === 'land'), 'Upgrade type not implemented');
-    const base = this.db.common.defines.Ndefines.NMilitary.LAND_EQUIPMENT_BASE_COST;
-    const ramp = this.db.common.defines.Ndefines.NMilitary.LAND_EQUIPMENT_RAMP_COST;
-    const n = Object.values(this.upgradeObjects).reduce((a, b) => a.level + b.level, 0);
-    return base * n + ramp * n * (n - 1) / 2;
-  }
-
   @computed get stats() {
     const b = new EquipmentBonus(this.bonus);
     if (this.archetype in this.bonus) {

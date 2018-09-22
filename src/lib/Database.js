@@ -175,17 +175,14 @@ class Database {
       defense: getLevels(leader.leader_defense_skills),
       logistics: getLevels(leader.leader_logistics_skills),
       planning: getLevels(leader.leader_planning_skills),
-      traits: {},
-      terrain: {},
+      traits: [],
     };
     const traits = this.common.unit_leader.leader_traits;
     Object.keys(traits).slice().sort().forEach((key) => {
       const { type, trait_type } = traits[key];
       if (type === 'all' || type === leaderType || (type === 'corps_commander' && leaderType === 'field_marshal')) {
-        if (!trait_type || trait_type === 'assignable_trait') {
-          result.traits[key] = traits[key];
-        } else if (trait_type === 'basic_terrain_trait' || trait_type === 'assignable_terrain_trait') {
-          result.terrain[key] = traits[key];
+        if (trait_type !== 'status_trait') {
+          result.traits.push(key);
         }
       }
     });

@@ -1,15 +1,9 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import  { Dropdown, List, Label, Icon, Input } from 'semantic-ui-react';
+import  { Dropdown, List, Label, Input } from 'semantic-ui-react';
 import { capitalize } from '../lib/utils';
 import LabelDropdown from './LabelDropdown';
 import LabelTray from './LabelTray';
-
-/*
-const relevantModifiers = {
-  production_factory_max_efficiency_factor: true,
-  industrial_capacity_factory: true,
-};*/
 
 const MyDropdown = ({ value, options, onChange }) =>
   <LabelDropdown placeholder='true' value={value} inline
@@ -78,12 +72,20 @@ const FieldMarshal = observer(({ country, db, l10n }) =>
         onChange={(e, d) => { country.setFieldMarshal({ [type]: d.value }); }} options={
           Object.keys(db.skills.field_marshal[type]).map(e => (
             { key: e, text: `${capitalize(type)} ${e}`, value: e }))}/>)}
-    <LabelTray selected={country.fieldMarshal.traits} addLabel='Trait' l10n={l10n.traits}
-      onChange={(traits) => { country.setFieldMarshal({ traits }); }} options={
-        Object.keys(db.skills.field_marshal.traits).map(e => ({ key: e, text: l10n.traits[e], value: e }))}/>
-    <LabelTray addLabel='Terrain' selected={country.fieldMarshal.terrain} l10n={l10n.traits}
-      onChange={(terrain) => { country.setFieldMarshal({ terrain }); }} options={
-        Object.keys(db.skills.field_marshal.terrain).map(e => ({ key: e, text: l10n.traits[e], value: e }))}/>
+    <Label.Group>
+      { ['personality', 'traits', 'terrain'].map(type =>
+        country.selectableFieldMarshalTraits[type].length > 0 &&
+        <LabelDropdown key={type} add text={capitalize(type)}
+          onChange={(e, d) => { country.setFieldMarshal({ traits: [...country.fieldMarshal.traits, d.value] }); }}
+          options={country.selectableFieldMarshalTraits[type].map(e =>
+            ({ key: e, text: l10n.traits[e], value: e }))}/>)}
+      { country.fieldMarshal.traits.length > 0 && country.fieldMarshal.traits.map(e =>
+        <Label key={e} size='medium' basic as='a'
+          onClick={() => {
+            country.setFieldMarshal({ traits: country.fieldMarshal.traits.filter(f => f !== e) });}}>
+          {l10n.traits[e]}
+        </Label>)}
+    </Label.Group>
   </React.Fragment>);
 
 const General = observer(({ country, db, l10n }) =>
@@ -91,14 +93,22 @@ const General = observer(({ country, db, l10n }) =>
     { ['level', 'attack', 'defense', 'logistics', 'planning'].map(type =>
       <LabelDropdown key={type} defaultValue={country.general[type] + ''}
         onChange={(e, d) => { country.setGeneral({ [type]: d.value }); }} options={
-          Object.keys(db.skills.field_marshal[type]).map(e => (
+          Object.keys(db.skills.general[type]).map(e => (
             { key: e, text: `${capitalize(type)} ${e}`, value: e }))}/>)}
-    <LabelTray addLabel='Trait' selected={country.general.traits} l10n={l10n.traits}
-      onChange={(traits) => { country.setGeneral({ traits }); }} options={
-        Object.keys(db.skills.general.traits).map(e => ({ key: e, text: l10n.traits[e], value: e }))}/>
-    <LabelTray addLabel='Terrain' selected={country.general.terrain} l10n={l10n.traits}
-      onChange={(terrain) => { country.setGeneral({ terrain }); }} options={
-        Object.keys(db.skills.general.terrain).map(e => ({ key: e, text: l10n.traits[e], value: e }))}/>
+    <Label.Group>
+      { ['personality', 'traits', 'terrain'].map(type =>
+        country.selectableGeneralTraits[type].length > 0 &&
+        <LabelDropdown key={type} add text={capitalize(type)}
+          onChange={(e, d) => { country.setGeneral({ traits: [...country.general.traits, d.value] }); }}
+          options={country.selectableGeneralTraits[type].map(e =>
+            ({ key: e, text: l10n.traits[e], value: e }))}/>)}
+      { country.general.traits.length > 0 && country.general.traits.map(e =>
+        <Label key={e} size='medium' basic as='a'
+          onClick={() => {
+            country.setGeneral({ traits: country.general.traits.filter(f => f !== e) });}}>
+          {l10n.traits[e]}
+        </Label>)}
+    </Label.Group>
   </React.Fragment>);
 
 const TroopDensity = observer(({ country }) =>
@@ -125,10 +135,9 @@ const Upgrades = observer(({ country, db }) =>
       </Label>}
     { country.variantNames.map(arch =>
       <Label.Group key={arch}>
-        <Label size='medium' basic className='delete'
+        <Label size='medium' basic as='a'
           onClick={() => { country.removeUpgrade(arch); }}>
           {db.equipmentShortName(arch)}
-          <Icon name='delete'/>
         </Label>
         { country.upgrades[arch].types.map(type =>
           <LabelDropdown key={type}
@@ -144,6 +153,7 @@ const tips = {
   laws: 'Affect production output.',
   ideas: 'No validity checking. Make sure your country can actually have it.',
   doctrine: 'The first two letters are doctrine acronyms. The rest are branches.',
+  general: 'Allocate 3 skill points per level.',
   density: 'Number of divisions per province',
   factories: 'Decide if able to sustain losses.',
   supply: 'Available / needed %. Affects attrition.',
@@ -169,11 +179,11 @@ const CountryEditor = observer(props =>
       <Doctrine {...props}/>
     </List.Item>
     <List.Item>
-      <span>Field Marshal: </span>
+      <span><abbr title={tips.general}>Field Marshal</abbr>: </span>
       <FieldMarshal {...props}/>
     </List.Item>
     <List.Item>
-      <span>General: </span>
+      <span><abbr title={tips.general}>General</abbr>: </span>
       <General {...props}/>
     </List.Item>
     <List.Item>
@@ -191,6 +201,11 @@ const CountryEditor = observer(props =>
     <List.Item>
       <span><abbr title={tips.upgrades}>Upgrades</abbr>: </span>
       <Upgrades {...props}/>
+    </List.Item>
+    <List.Item>
+      <pre className='stats'>
+        {JSON.stringify(props.country.countryBonus, null, 2)}
+      </pre>
     </List.Item>
   </List>);
 

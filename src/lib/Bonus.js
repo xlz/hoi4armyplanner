@@ -1,47 +1,27 @@
 import assert from 'assert';
 
+function addFrom(dst, src, n) {
+  Object.keys(src).forEach((key) => {
+    if (dst.sealed && !(key in dst)) return;
+    if (typeof src[key] === 'number') {
+      if (!(key in dst)) dst[key] = 0;
+      assert.equal(typeof dst[key], 'number');
+      dst[key] += src[key] * n;
+    } else if (typeof src[key] === 'object' && !Array.isArray(src[key])) {
+      if (!dst[key]) dst[key] = {};
+      addFrom(dst[key], src[key], n);
+    }
+  });
+}
+
 class Bonus {
-  constructor(obj = {}) {
+  constructor(obj) {
     this.add(obj);
   }
 
-  add(originalObj = {}) {
-    const obj = JSON.parse(JSON.stringify(originalObj));
-    Object.keys(obj).forEach((key) => {
-      if (!(key in this)) {
-        if (!Object.isSealed(this)) {
-          this[key] = obj[key];
-        }
-      } else if (typeof this[key] === 'number') {
-        assert.equal(typeof obj[key], 'number');
-        this[key] += obj[key];
-      } else if (typeof this[key] === 'string') {
-        if (Array.isArray(obj[key])) {
-          this[key] = [this[key], ...obj[key]];
-        } else {
-          assert.equal(typeof obj[key], 'string');
-          this[key] = [this[key], obj[key]];
-          this[key].push(obj[key]);
-        }
-      } else if (Array.isArray(this[key])) {
-        if (Array.isArray(obj[key])) {
-          this[key].push(...obj[key]);
-        } else {
-          assert.equal(typeof obj[key], typeof this[key][0]);
-          this[key].push(obj[key]);
-        }
-      } else if (typeof this[key] === 'object') {
-        if (typeof obj[key] !== 'object') {
-          // Overwrites if objType !== 'object'
-          this[key] = obj[key];
-        } else {
-          if (!(this[key] instanceof Bonus)) {
-            this[key] = new Bonus(this[key]);
-          }
-          this[key].add(obj[key]);
-        }
-      }
-    });
+  add(obj, n = 1) {
+    if (!obj) return;
+    addFrom(this, obj, n);
   }
 
   applyTo(originalObj = {}) {

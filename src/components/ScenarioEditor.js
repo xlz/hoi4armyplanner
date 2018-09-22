@@ -19,7 +19,7 @@ const tips = {
     'Please use in-game Air View to locate the regions as needed.',
   air: 'Reduces defense stats. Air chief and doctrine buff the effect.',
   airWithDoctrine: 'army_bonus_air_superiority_factor +0.3',
-  planning: 'Attacks with between full and half planning bonus.',
+  planning: 'Attacks from full to no planning bonus. One-time use at the start.',
   entrenchment: 'Defends with full entrenchment bonus.',
 };
 
@@ -63,7 +63,7 @@ const Terrain = observer(({ scenario, db, l10n }) =>
       <Label size='medium' basic>
         <abbr title={Object.keys(scenario.averageTerrain)
           .map(e => `${l10n.terrain[e]} ${(scenario.averageTerrain[e] * 100).toFixed(0)}%`)
-          .join('\n')}>Theater Average</abbr>
+          .join('\n') || 'No Region Selected'}>Theater Average</abbr>
       </Label> }
   </React.Fragment>
 );

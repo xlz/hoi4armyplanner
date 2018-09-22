@@ -1,6 +1,6 @@
 import Bonus from './Bonus';
 
-const properties = {
+const props = {
   maximum_speed: 0,
   max_strength: 0,
   max_organisation: 0,
@@ -11,7 +11,6 @@ const properties = {
   weight: 0,
   supply_consumption: 0,
   supply_consumption_factor: 0,
-  reliability: 0,
   reliability_factor: 0,
   casualty_trickleback: 0,
   experience_loss_factor: 0,
@@ -33,24 +32,24 @@ const properties = {
   build_cost_ic: 0,
   hardness: 0,
 
-  desert: {},
-  forest: {},
-  hills: {},
-  mountain: {},
-  plains: {},
-  urban: {},
-  jungle: {},
-  marsh: {},
-  fort: {},
-  river: {},
-  amphibious: {},
+  forest: undefined,
+  hills: undefined,
+  mountain: undefined,
+  plains: undefined,
+  urban: undefined,
+  jungle: undefined,
+  marsh: undefined,
+  desert: undefined,
+  fort: undefined,
+  river: undefined,
+  amphibious: undefined,
 };
 
 class UnitBonus extends Bonus {
   constructor(obj) {
     super();
-    Object.assign(this, { ...properties, ...this });
-    Object.seal(this);
+    Object.assign(this, props);
+    Object.defineProperty(this, 'sealed', { value: true });
     this.add(obj);
   }
 }

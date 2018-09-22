@@ -77,14 +77,9 @@
 }
 
 .App .ui.label {
-  cursor: default;
   user-select: none;
   padding: 4px 7px;
   margin: 2px 4px 2px 0;
-}
-
-.App .ui.label.delete {
-  cursor: pointer;
 }
 
 .App .ui.label > .detail {
