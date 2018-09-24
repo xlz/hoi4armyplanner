@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { observable, computed } from 'mobx';
-import EquipmentBonus from './EquipmentBonus';
 
 class Equipment {
   @observable country;
@@ -16,27 +15,9 @@ class Equipment {
     Object.assign(this, archetype, eq);
   }
 
-  @computed get bonus() {
-    const b = new EquipmentBonus();
-    b.add(this.country.bonus.equipment_bonus);
-    b.add(this.country.upgrades[this.archetype]);
-    return b;
-  }
-
   @computed get stats() {
-    const b = new EquipmentBonus(this.bonus);
-    if (this.archetype in this.bonus) {
-      b.add(this.bonus[this.archetype]);
-    }
-    return b.applyTo(this);
+    return this.country.equipmentBonus[this.archetype].applyTo(this);
   }
-
-  //toString() {
-  //  const l10n = this.db.l10n.equipment;
-  //  const upgradeStrings = Object.values(this.upgradeObjects).map(e => e.toString()).filter(e => e);
-  //  const hasUpgrades = upgradeStrings.length;
-  //  return `${l10n[this.name]}${hasUpgrades ? ' (' : ''}${upgradeStrings.join(', ')}${hasUpgrades ? ')' : ''}`;
-  //}
 
   @computed get code() {
     const arch_code = this.db.l10n.archetype_code;

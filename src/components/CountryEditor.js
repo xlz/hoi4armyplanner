@@ -1,9 +1,10 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import  { Dropdown, List, Label, Input } from 'semantic-ui-react';
-import { capitalize } from '../lib/utils';
+import { capitalize, formatJson } from '../lib/utils';
 import LabelDropdown from './LabelDropdown';
 import LabelTray from './LabelTray';
+import Drawer from './Drawer';
 
 const MyDropdown = ({ value, options, onChange }) =>
   <LabelDropdown placeholder='true' value={value} inline
@@ -22,7 +23,8 @@ const Laws = observer(({ country, db, l10n }) =>
     <LabelDropdown defaultValue={country.mobilizationLaw}
       onChange={(e, d) => { country.setMobilizationLaw(d.value); }} options={
         db.mobilizationLawNames.map(e => ({ key: e, text: l10n.ideas[e], value: e }))}/>
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const HighCommand = observer(({ country, db, l10n }) =>
   <LabelTray selected={country.highCommand} addLabel='High Command' l10n={l10n.traits}
@@ -48,7 +50,8 @@ const Advisors = observer(({ country, db, l10n }) =>
     { country.advisorCountries !== true &&
       <Dropdown text='(Possible Countries)' selectOnBlur={false} scrolling={true} options={
         country.advisorCountries.map(e => ({ key: e, text: db.common.country_tags[e], value: e }))}/>}
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const Ideas = observer(({ country, db, l10n }) =>
   <LabelTray selected={country.ideas} addLabel={l10n.ideas.country} l10n={l10n.ideas}
@@ -63,7 +66,8 @@ const Ideas = observer(({ country, db, l10n }) =>
 const Doctrine = observer(({ country, db }) =>
   <LabelDropdown defaultValue={country.doctrine} upward={false}
     onChange={(e, d) => { country.setDoctrine(d.value); }} options={
-      db.landDoctrineNames.map(e => ({ key: e, text: e, value: e }))}/>);
+      db.landDoctrineNames.map(e => ({ key: e, text: e, value: e }))}/>
+);
 
 const FieldMarshal = observer(({ country, db, l10n }) =>
   <React.Fragment>
@@ -86,7 +90,8 @@ const FieldMarshal = observer(({ country, db, l10n }) =>
           {l10n.traits[e]}
         </Label>)}
     </Label.Group>
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const General = observer(({ country, db, l10n }) =>
   <React.Fragment>
@@ -109,19 +114,23 @@ const General = observer(({ country, db, l10n }) =>
           {l10n.traits[e]}
         </Label>)}
     </Label.Group>
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const TroopDensity = observer(({ country }) =>
   <LabelDropdown defaultValue={country.density} onChange={(e, d) => { country.setDensity(d.value); }}
-    options={Array.from({ length: 8 }, (x, i) => i + 1).map(e => ({ key: e, text: e, value: e}))}/>);
+    options={Array.from({ length: 8 }, (x, i) => i + 1).map(e => ({ key: e, text: e, value: e}))}/>
+);
 
 const Factories = observer(({ country }) =>
   <Input value={country.factories} size='mini' style={{ width: '4em' }}
-    onChange={(e, d) => { country.setFactories(parseInt(d.value, 10) || 10); }}/>);
+    onChange={(e, d) => { country.setFactories(parseInt(d.value, 10) || 10); }}/>
+);
 
 const Supply = observer(({ country }) =>
   <Input value={country.supply} size='mini' style={{ width: '4em' }}
-    onChange={(e, d) => { country.setSupply(parseInt(d.value, 10) || 100); }}/>);
+    onChange={(e, d) => { country.setSupply(parseInt(d.value, 10) || 100); }}/>
+);
 
 const Upgrades = observer(({ country, db }) =>
   <React.Fragment>
@@ -147,7 +156,61 @@ const Upgrades = observer(({ country, db }) =>
               key: e, text: `${db.upgradeCode(type)} +${e}`, value: e,
              }))}/>)}
       </Label.Group>)}
-  </React.Fragment>);
+  </React.Fragment>
+);
+
+function filterJson(obj) {
+  const {
+    allowed, allowed_civil_war, removal_cost, picture, countries, modifier,
+    available, research_bonus, cost, cancel_if_invalid, ai_will_do,
+    on_add, level, sprite, random, xor, path, doctrine, research_cost, categories,
+    folder, ai_research_weights, XOR, enable_equipments, sub_technologies,
+    dependencies, allow, on_research_complete, enable_building, show_equipment_icon,
+    desc, allow_branch, show_effect_as_desc, enable_subunits, start_year,
+    training_time_army_factor, experience_gain_army_factor, political_power_factor,
+    industry_air_damage_factor, static_anti_air_damage_factor,
+    static_anti_air_hit_chance_factor, encryption, decryption,
+    nuclear_production, line_change_production_efficiency_factor,
+    production_factory_efficiency_gain_factor, equipment_conversion_speed,
+    industrial_capacity_dockyard, global_building_slots_factor,
+    production_factory_start_efficiency_factor, production_speed_buildings_factor,
+    industry_repair_factor, local_resources_factor, org_loss_when_moving,
+    conscription, partisan_effect, minimum_training_level, research_time_factor,
+    max_command_power, experience_gain_army, military_leader_cost_factor,
+    army_leader_start_level, consumer_goods_factor, justify_war_goal_time,
+    stability_factor, subversive_activites_upkeep, descryption_factor,
+    min_export, training_time_factor, naval_strike_targetting_factor,
+    production_speed_coastal_bunker_factor,
+    army_core_defence_factor, army_core_attack_factor,
+    ...rest
+  } = obj;
+  delete rest.default;
+  return obj;
+}
+
+const CountryBonuses = observer(({ country, db }) =>
+  <Drawer title='Country Bonuses'>
+    <pre className='stats'>
+      {formatJson(filterJson(country.countryBonus))}
+    </pre>
+  </Drawer>
+);
+
+const DoctrineBonuses = observer(({ country, db }) =>
+  <Drawer title='Doctrine Bonuses'>
+    <pre className='stats'>
+      {formatJson(filterJson(country.doctrineBonus))}
+    </pre>
+  </Drawer>
+);
+
+const CommanderBonuses = observer(({ country, db }) =>
+  <Drawer title='Commander Bonuses'>
+    <pre className='stats'>
+      {formatJson(filterJson(country.commanderBonus))}
+    </pre>
+  </Drawer>
+);
 
 const tips = {
   laws: 'Affect production output.',
@@ -161,52 +224,55 @@ const tips = {
 };
 
 const CountryEditor = observer(props =>
-  <List>
-    <List.Item>
-      <span><abbr title={tips.laws}>Laws</abbr>: </span>
-      <Laws {...props}/>
-    </List.Item>
-    <List.Item>
-      <span>Advisors: </span>
-      <Advisors {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.ideas}>Ideas</abbr>: </span>
-      <Ideas {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.doctrine}>Doctrine</abbr>: </span>
-      <Doctrine {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.general}>Field Marshal</abbr>: </span>
-      <FieldMarshal {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.general}>General</abbr>: </span>
-      <General {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.density}>Troop Density</abbr>: </span>
-      <TroopDensity {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.factories}>Factories</abbr>: </span>
-      <Factories {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.supply}>Supply%</abbr>: </span>
-      <Supply {...props}/>
-    </List.Item>
-    <List.Item>
-      <span><abbr title={tips.upgrades}>Upgrades</abbr>: </span>
-      <Upgrades {...props}/>
-    </List.Item>
-    <List.Item>
-      <pre className='stats'>
-        {JSON.stringify(props.country.countryBonus, null, 2)}
-      </pre>
-    </List.Item>
-  </List>);
+  <React.Fragment>
+    <Drawer title='Edit'>
+      <List>
+        <List.Item>
+          <span><abbr title={tips.laws}>Laws</abbr>: </span>
+          <Laws {...props}/>
+        </List.Item>
+        <List.Item>
+          <span>Advisors: </span>
+          <Advisors {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.ideas}>Ideas</abbr>: </span>
+          <Ideas {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.doctrine}>Doctrine</abbr>: </span>
+          <Doctrine {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.general}>Field Marshal</abbr>: </span>
+          <FieldMarshal {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.general}>General</abbr>: </span>
+          <General {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.density}>Troop Density</abbr>: </span>
+          <TroopDensity {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.factories}>Factories</abbr>: </span>
+          <Factories {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.supply}>Supply%</abbr>: </span>
+          <Supply {...props}/>
+        </List.Item>
+        <List.Item>
+          <span><abbr title={tips.upgrades}>Upgrades</abbr>: </span>
+          <Upgrades {...props}/>
+        </List.Item>
+      </List>
+    </Drawer>
+    <CountryBonuses {...props}/>
+    <DoctrineBonuses {...props}/>
+    <CommanderBonuses {...props}/>
+  </React.Fragment>
+);
 
 export default CountryEditor;

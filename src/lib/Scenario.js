@@ -1,5 +1,6 @@
 import { observable, computed, action } from 'mobx';
 import Country from './Country';
+import Bonus from './Bonus';
 
 const defaultProps = {
   startYear: 1936,
@@ -57,6 +58,16 @@ class Scenario {
       }
     });
     return normalized;
+  }
+
+  @computed get technologyBonus() {
+    const bonus = new Bonus();
+    Object.keys(this.db.technologies).forEach((year) => {
+      if (year > this.year) return;
+      const techs = this.db.technologies[year];
+      bonus.add(techs);
+    });
+    return bonus;
   }
 
   @action setYear(value) {

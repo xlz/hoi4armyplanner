@@ -1,26 +1,11 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
 import { sprintf } from 'sprintf-js';
-import { Label, Icon, Accordion } from 'semantic-ui-react';
+import { Label, Icon } from 'semantic-ui-react';
 import UnitBonus from '../lib/UnitBonus';
-import { capitalize } from '../lib/utils';
+import { capitalize, formatJson } from '../lib/utils';
 import LabelDropdown from './LabelDropdown';
-
-function stringify(obj, root = true) {
-  return Object.keys(obj).map((key) => {
-    const content = typeof obj[key] === 'object' ? '\n  ' + stringify(obj[key], false) :
-      typeof obj[key] === 'number' ? obj[key] && sprintf('%.2f', obj[key]).replace(/\.?0+$/, '') :
-      obj[key];
-    return content && /\S/.test(content) && sprintf('%s  %s', key, content);
-  }).filter(e => e).join(root ? '\n' : '\n  ');
-}
-
-const OneAccordion = ({title, children}) =>
-  <Accordion panels={[{
-    key: 0,
-    title: title,
-    content: { content: children }
-  }]}/>;
+import Drawer from './Drawer';
 
 @observer class DivisionEditor extends Component {
   render() {
@@ -45,12 +30,12 @@ const OneAccordion = ({title, children}) =>
             ' IC|%(build_cost_ic)5.0f   W|%(combat_width)5.1f',
             ].join('\n'), s)}
       </pre>
-      <OneAccordion title='Full Stats'>
+      <Drawer title='Full Stats'>
         <pre className='stats'>
-          {stringify(extra)}
+          {formatJson(extra)}
         </pre>
-      </OneAccordion>
-      <OneAccordion title='Edit'>
+      </Drawer>
+      <Drawer title='Edit'>
         <Label.Group>
           { Object.keys(possibleUnits).map(group =>
             <LabelDropdown key={group} add text={capitalize(group)} scrolling={possibleUnits[group].length > 10}
@@ -79,7 +64,7 @@ const OneAccordion = ({title, children}) =>
                 ['', ...division.possibleEquipmentNames[arch]].map(e => (
                   { key: e, text: l10n.equipment[e] || '(Current)', value: e }))}/>)}
         </Label.Group>
-      </OneAccordion>
+      </Drawer>
     </React.Fragment>;
   }
 };

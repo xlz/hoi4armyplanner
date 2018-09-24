@@ -29,14 +29,23 @@ class EquipmentBonus {
     });
   }
 
-  applyTo(obj) {
-    const newObj = { ...obj };
+  apply(bonus) {
     keys.forEach((key) => {
-      if (key in obj) {
-        newObj[key] *= 1 + this[key];
+      if (key in bonus) {
+        this[key] *= 1 + bonus[key];
       }
     });
-    return newObj;
+    return this;
+  }
+
+  applyTo(obj) {
+    const out = { ...obj };
+    keys.forEach((key) => {
+      if (key in obj) {
+        out[key] *= 1 + this[key];
+      }
+    });
+    return out;
   }
 }
 

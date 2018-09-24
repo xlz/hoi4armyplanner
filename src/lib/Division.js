@@ -143,6 +143,7 @@ class Division {
     return result;
   }
 
+  // seems redundant
   @computed get equipmentStats() {
     const stats = {};
     this.neededArchetypes.forEach((arch) => {
@@ -151,30 +152,21 @@ class Division {
     return stats;
   }
 
-  getUnitStats(name) {
-    const unit = this.db.common.sub_units[name];
-    const b = new UnitBonus(unit);
-    b.add(this.bonus);
-    if (name in this.bonus) {
-      b.add(this.bonus[name]);
-    }
-    unit.categories.forEach((category) => {
-      if (category in this.bonus) {
-        b.add(this.bonus[category]);
-      }
-    });
-
-    const eqTotal = new EquipmentBonus();
+  getUnitStats(unitName) {
+    const unit = this.db.common.sub_units[unitName];
+    const unitBonus = this.country.templateBonusByUnit[unitName];
+    const eqBase = new EquipmentBonus();
+    let build_cost_ic = 0;
+    let maximum_speed = 0;
     Object.keys(unit.need).forEach((arch) => {
-      const stats = { ...this.equipmentStats[arch] };
-      stats.build_cost_ic *= unit.need[arch];
-      if (unit.transport && unit.transport !== arch) {
-        stats.maximum_speed = 0;
+      const { stats } = this.equipments[arch];
+      build_cost_ic += stats.build_cost_ic * unit.need[arch];
+      if (!unit.transport || unit.transport === arch) {
+        maximum_speed = stats.maximum_speed;
       }
-      eqTotal.add(stats);
+      eqBase.add(stats);
     });
-    // TODO: apply MIN_SUPPLY_CONSUMPTION
-    return b.applyTo(eqTotal);
+    return { ...unitBonus, ...eqBase.apply(unitBonus), build_cost_ic, maximum_speed };
   }
 
   @computed get stats() {
@@ -201,6 +193,7 @@ class Division {
         }
       }
     });
+
     const {
       PEN_VS_AVERAGE,
       ARMOR_VS_AVERAGE,
@@ -212,7 +205,6 @@ class Division {
       (1 - ARMOR_VS_AVERAGE) * avg(all.map(e => e.armor_value));
     total.hardness = avg(frontline.map(e => e.hardness));
     total.maximum_speed = all.length && Math.max(min(frontline.map(e => e.maximum_speed)), SLOWEST_SPEED);
-    total.reliability = 0;
 
     total.default_morale = all.length && total.default_morale / all.length;
     total.max_organisation = all.length && total.max_organisation / all.length;
@@ -234,7 +226,8 @@ class Division {
     });
 
     // TODO: type
-
+    // TODO: minimum consumption
+    total.add(this.country.templateBonus);
     return total;
   }
 

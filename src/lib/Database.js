@@ -3,6 +3,15 @@ import hoi4 from '../data/db.json';
 import Bonus from './Bonus';
 import { capitalize } from './utils';
 
+function deepFreeze(obj) {
+  Object.keys(obj).forEach((key) => {
+    if (obj[key] && typeof obj[key] === 'object') {
+      obj[key] = deepFreeze(obj[key]);
+    }
+  });
+  return Object.freeze(obj);
+}
+
 class Database {
   constructor(db = hoi4) {
     Object.assign(this, db);
@@ -42,16 +51,6 @@ class Database {
     return code.length > 2 ? capitalize(code) : code.toUpperCase();
   }
 
-  @computed get continentNames() {
-    return Object.keys(this.map.strategic_regions);
-  }
-
-  @computed get terrainNames() {
-    const { categories } = this.common.terrain;
-    const names = Object.keys(categories).filter(e => !categories[e].is_water && e !== 'unknown');
-    return [...names, 'fort', 'river', 'amphibious'];
-  }
-
   @computed get upgradeableArchetypes() {
     return this.archetypeNames.filter((e) => {
       const { upgrades } = this.common.equipments[e];
@@ -63,6 +62,17 @@ class Database {
     return Object.keys(this.common.upgrades);
   }
 
+  @computed get continentNames() {
+    return Object.keys(this.map.strategic_regions);
+  }
+
+  @computed get terrainNames() {
+    const { categories } = this.common.terrain;
+    const names = Object.keys(categories).filter(e => !categories[e].is_water && e !== 'unknown');
+    return [...names, 'fort', 'river', 'amphibious'];
+  }
+
+  // Returns bonus list by year by doctrine name.
   @computed get landDoctrines() {
     const doctrines = this.common.technologies.land_doctrine.technologies;
     const children = {};
@@ -114,22 +124,67 @@ class Database {
       const branchingsName = pathIndex.branchings.map(e => ['L', 'R'][e]).join('');
       const pathName = categoryShort + branchingsName;
       const bonus = new Bonus();
+      bonus.research_cost = 0;
+      bonus.enable_tactic = [];
       const steps = [];
       pathIndex.path.forEach((name) => {
-        const doctrine = Object.assign({}, doctrines[name]);
-        ['xor', 'path', 'doctrine', 'categories', 'folder', 'ai_will_do', 'ai_research_weights'].forEach((key) => {
-          delete doctrine[key];
-        });
+        const doctrine = doctrines[name];
         bonus.add(doctrine);
+        bonus.research_cost += doctrine.research_cost;
+        if (doctrine.enable_tactic) {
+          if (Array.isArray(doctrine.enable_tactic)) {
+            bonus.enable_tactic.push(...doctrine.enable_tactic);
+          } else {
+            bonus.enable_tactic.push(doctrine.enable_tactic);
+          }
+        }
         steps.push(JSON.parse(JSON.stringify(bonus)));
       });
       doctrineSteps[pathName] = steps;
     });
-    return doctrineSteps;
+    return deepFreeze(doctrineSteps);
   }
 
   @computed get landDoctrineNames() {
     return Object.keys(this.landDoctrines);
+  }
+
+  // Returns sum bonus by year.
+  @computed get technologies() {
+    // Doesn't have logic to handle xor yet.
+    const blacklist = [
+      'improved_special_forces',
+      'survival_training',
+      'flexible_line', // We use concentrated so growth is better than retention.
+      'dispersed_industry',
+      'dispersed_industry2',
+      'dispersed_industry3',
+      'dispersed_industry4',
+      'dispersed_industry5',
+    ];
+    const types = ['armor', 'artillery', 'electronic_mechanical_engineering', 'industry', 'infantry', 'support'];
+    const techsByYear = {};
+    types.forEach((type) => {
+      const techs = this.common.technologies[type].technologies;
+      Object.keys(techs).forEach((key) => {
+        if (key[0] === '@' || blacklist.includes(key)) return;
+        const tech = techs[key];
+        if (tech.allow && tech.allow.always === 'no') return;
+        const year = tech.start_year || 0;
+        if (!techsByYear[year]) techsByYear[year] = [];
+        techsByYear[year].push(tech);
+      });
+    });
+    const bonusByYear = {};
+    Object.keys(techsByYear).forEach((year) => {
+      const techs = techsByYear[year];
+      const bonus = new Bonus();
+      techs.forEach((tech) => {
+        bonus.add(tech);
+      });
+      bonusByYear[year] = bonus;
+    });
+    return deepFreeze(bonusByYear);
   }
 
   @computed get tradeLawNames() {
@@ -186,7 +241,7 @@ class Database {
         }
       }
     });
-    return result;
+    return deepFreeze(result);
   }
 
   @computed get skills() {

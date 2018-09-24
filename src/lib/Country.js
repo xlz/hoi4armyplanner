@@ -3,6 +3,7 @@ import { observable, computed, action } from 'mobx';
 import Division from './Division';
 import Upgrade from './Upgrade';
 import Bonus from './Bonus';
+import EquipmentBonus from './EquipmentBonus';
 import { sum, removeFalsies } from './utils';
 
 const defaultProps = {
@@ -219,10 +220,6 @@ class Country {
 
   @observable division;
 
-  @computed get year() {
-    return this.scenario.year;
-  }
-
   @computed get upgradeCost() {
     const usedUpgrades = this.division.neededArchetypes.filter(e => this.upgrades[e]);
     const n = sum(usedUpgrades.map((arch => sum(Object.values(this.upgrades[arch].levels)))));
@@ -233,26 +230,110 @@ class Country {
   @computed get countryBonus() {
     const bonus = new Bonus();
     const { ideas } = this.db.common;
-    bonus.add(ideas.trade_laws[this.tradeLaw]);
-    bonus.add(ideas.mobilization_laws[this.mobilizationLaw]);
+    bonus.add(ideas.trade_laws[this.tradeLaw].modifier);
+    bonus.add(ideas.mobilization_laws[this.mobilizationLaw].modifier);
     bonus.add(ideas.army_chief[this.armyChief]);
     bonus.add(ideas.air_chief[this.airChief]);
     bonus.add(ideas.tank_manufacturer[this.tankManufacturer]);
     this.highCommand.forEach((key) => { bonus.add(ideas.high_command[key]); });
-    this.ideas.forEach((key) => { bonus.add(ideas.country[key]); });
-    Object.keys(this.upgrades).forEach((arch) => {
+    this.ideas.forEach((key) => { bonus.add(ideas.country[key].modifier); });
+    Object.keys(this.upgrades).filter(e => this.upgrades[e]).forEach((arch) => {
       const { levels } = this.upgrades[arch];
       Object.keys(levels).forEach((type) => {
         bonus.add({ equipment_bonus: { [arch]: this.db.common.upgrades[type] } }, levels[type]);
       });
     });
-    bonus.add(bonus.modifier);
+
     return bonus;
   }
 
-  @computed get bonus() {
-    return {};
+  // bonus by archetype
+  @computed get equipmentBonus() {
+    const result = {};
+    const bonuses = this.countryBonus.equipment_bonus || {};
+    this.db.archetypeNames.forEach((archetype) => {
+      const b = new EquipmentBonus(bonuses[archetype]);
+      const { type } = this.db.common.equipments[archetype];
+      const types = (Array.isArray(type) ? type : [type]);
+      types.forEach((t) => {
+        b.add(bonuses[t]);
+      });
+      result[archetype] = b;
+    });
+    return result;
   }
+
+  @computed get technologyBonus() {
+    return this.scenario.technologyBonus;
+  }
+
+  @computed get doctrineBonus() {
+    const doctrineList = this.db.landDoctrines[this.doctrine];
+    const { BASE_TECH_COST } = this.db.common.defines.NDefines.NTechnology;
+    const freeStartProgress = 150;
+    const currentDay = (this.year - this.scenario.startYear + 0.5) * 365 + freeStartProgress;
+    const doctrine = doctrineList.slice().reverse().find(e => e.research_cost * BASE_TECH_COST <= currentDay);
+    assert(doctrine);
+    const { research_cost, ...filtered } = doctrine;
+    return filtered;
+  }
+
+  @computed get templateBonus() {
+    const b = new Bonus();
+    b.add(this.technologyBonus);
+    b.add(this.doctrineBonus);
+    return b;
+  }
+
+  // bonus by unit name
+  @computed get templateBonusByUnit() {
+    const result = {};
+    const bonuses = this.templateBonus;
+    this.db.unitNames.forEach((unitName) => {
+      const unit = this.db.common.sub_units[unitName];
+      const bonus = new Bonus(unit);
+      if (unitName in bonuses) {
+        bonus.add(bonuses[unitName]);
+      }
+      unit.categories.forEach((category) => {
+        if (category in bonuses) {
+          bonus.add(bonuses[category]);
+        }
+      });
+      result[unitName] = Object.freeze(bonus);
+    });
+    return result;
+  }
+
+  getCommanderBonus(props, commanderType) {
+    const bonus = new Bonus();
+    const { FIELD_MARSHAL_ARMY_BONUS_RATIO } = this.db.common.defines.NDefines.NMilitary;
+    const factor = (commanderType === 'field_marshal' ? FIELD_MARSHAL_ARMY_BONUS_RATIO : 1);
+    ['attack', 'defense', 'logistics', 'planning'].forEach((type) => {
+      const skills = this.db.common.unit_leader[`leader_${type}_skills`][props[type]];
+      const skill = skills.filter(e => e.type === commanderType)[0];
+      bonus.add(skill.modifier, factor);
+    });
+    props.traits.forEach((traitName) => {
+      const trait = this.db.common.unit_leader.leader_traits[traitName];
+      bonus.add(trait.modifier, factor);
+      if (commanderType === 'field_marshal') {
+        bonus.add(trait.field_marshal_modifier);
+      }
+    });
+    return bonus;
+  }
+  @computed get commanderBonus() {
+    const bonus = new Bonus();
+    bonus.add(this.getCommanderBonus(this.fieldMarshal, 'field_marshal'));
+    bonus.add(this.getCommanderBonus(this.general, 'corps_commander'));
+    return bonus;
+  }
+
+  @computed get year() {
+    return this.scenario.year;
+  }
+
 }
 
 export default Country;

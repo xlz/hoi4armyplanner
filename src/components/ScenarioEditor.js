@@ -10,11 +10,12 @@ import CountryEditor from './CountryEditor';
 import DivisionEditor from './DivisionEditor';
 import LabelDropdown from './LabelDropdown';
 import LabelTray from './LabelTray';
-import { capitalize } from '../lib/utils';
+import Drawer from './Drawer';
+import { capitalize, formatJson } from '../lib/utils';
 
 const tips = {
   year: 'Simplifies research progress and the default "Current" equipment by the year. ' +
-    'Ahead-of-time equipment can still be used.',
+    'Ahead-of-time equipment can still be used (ahead-of-time mechanized yields wrong research bonuses though).',
   theater: 'Decides the number of battles (provinces) and terrain. ' +
     'Please use in-game Air View to locate the regions as needed.',
   air: 'Reduces defense stats. Air chief and doctrine buff the effect.',
@@ -92,6 +93,14 @@ const Preparation = observer(({ scenario }) =>
       onChange={(e, d) => { scenario.setEntrenchment(d.checked); }} />
   </React.Fragment>);
 
+const TechnologyBonuses = observer(({ scenario }) =>
+  <Drawer title='Technology Bonuses'>
+    <pre className='stats'>
+      {formatJson(scenario.technologyBonus)}
+    </pre>
+  </Drawer>
+);
+
 const ScenarioEditor = observer(props =>
   <Container>
     <Header size='medium' dividing>
@@ -117,6 +126,9 @@ const ScenarioEditor = observer(props =>
       <List.Item>
         <span><abbr title={tips.preparation}>Preparation</abbr>: </span>
         <Preparation {...props}/>
+      </List.Item>
+      <List.Item>
+        <TechnologyBonuses {...props}/>
       </List.Item>
     </List>
     <Grid columns={2}>
