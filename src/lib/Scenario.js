@@ -4,7 +4,7 @@ import Bonus from './Bonus';
 
 const defaultProps = {
   startYear: 1936,
-  year: 1940,
+  year: 1936,
   theater: {},
   terrain: 'plains',
   air: { winner: null, buffed: false },

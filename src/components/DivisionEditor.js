@@ -1,11 +1,22 @@
 import React, { Component } from 'react';
 import { observer } from 'mobx-react';
-import { sprintf } from 'sprintf-js';
 import { Label, Icon } from 'semantic-ui-react';
 import UnitBonus from '../lib/UnitBonus';
 import { capitalize, formatJson } from '../lib/utils';
 import LabelDropdown from './LabelDropdown';
 import Drawer from './Drawer';
+
+function pad(str, width) {
+  return ' '.repeat(str.length < width ? width - str.length : 0) + str;
+}
+
+function round51(num) {
+  let str = num.toFixed(1);
+  if (str.length > 5) {
+    str = num.toFixed(0);
+  }
+  return pad(str, 5);
+}
 
 @observer class DivisionEditor extends Component {
   render() {
@@ -14,21 +25,20 @@ import Drawer from './Drawer';
     const { l10n } = db;
     const units = division.units;
     const possibleUnits = division.possibleUnits;
-    const s = { ...division.stats };
-    s.hardness *= 100;
+    const s = division.stats;
     const extra = new UnitBonus(s);
 
     return <React.Fragment>
       <p className='stats'><code>{division.code}</code></p>
       <pre className='stats'>
-        { sprintf([
-            ' SA|%(soft_attack)5.1f  HA|%(hard_attack)5.1f',
-            'Def|%(defense)5.1f Brk|%(breakthrough)5.1f',
-            'Org|%(max_organisation)5.1f  HP|%(max_strength)5.1f',
-            'Arm|%(armor_value)5.1f Hrd|%(hardness)3.0f%%',
-            ' AP|%(ap_attack)5.1f  AA|%(air_attack)5.1f',
-            ' IC|%(build_cost_ic)5.0f   W|%(combat_width)5.1f',
-            ].join('\n'), s)}
+        { [
+            ` SA|${round51(s.soft_attack)}  HA|${round51(s.hard_attack)}`,
+            `Def|${round51(s.defense)} Brk|${round51(s.breakthrough)}`,
+            `Org|${round51(s.max_organisation)}  HP|${round51(s.max_strength)}`,
+            `Arm|${round51(s.armor_value)} Hrd|${pad((s.hardness * 100).toFixed(0), 3)}%`,
+            ` AP|${round51(s.ap_attack)}  AA|${round51(s.air_attack)}`,
+            ` IC|${pad(s.build_cost_ic.toFixed(0), 5)}   W|${round51(s.combat_width)}`,
+            ].join('\n')}
       </pre>
       <Drawer title='Full Stats'>
         <pre className='stats'>

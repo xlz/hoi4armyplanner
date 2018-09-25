@@ -39,10 +39,15 @@ class App extends Component {
     this.setState({ key: this.state.key + 1 });
   }
 
+  onLoad = (state) => {
+    this.scenario = new Scenario(this.db, state);
+    this.setState({ key: this.state.key + 1 });
+  }
+
   render() {
     return (
       <div className="App">
-        <ScenarioEditor key={this.state.key} onReset={this.onReset}
+        <ScenarioEditor key={this.state.key} onReset={this.onReset} onLoad={this.onLoad}
           scenario={this.scenario} db={this.db} l10n={this.db.l10n}/>
       </div>
     );

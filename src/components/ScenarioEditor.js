@@ -12,6 +12,7 @@ import LabelDropdown from './LabelDropdown';
 import LabelTray from './LabelTray';
 import Drawer from './Drawer';
 import { capitalize, formatJson } from '../lib/utils';
+import presets from '../data/presets';
 
 const tips = {
   year: 'Simplifies research progress and the default "Current" equipment by the year. ' +
@@ -24,17 +25,18 @@ const tips = {
   entrenchment: 'Defends with full entrenchment bonus.',
 };
 
-const Presets = observer(() =>
-  <LabelDropdown text='Load Presets' options={[
-    { key: 1, text: 'GER vs SOV 1940', value: 1 },
-    { key: 2, text: 'GER vs USA 1942', value: 2 },
-  ]} onChange={(e, d) => { console.log(d); }}/>);
+const Presets = observer(({ onLoad }) =>
+  <LabelDropdown text='Load Presets'
+    options={Object.keys(presets).map(key => ({ key, text: key, value: JSON.stringify(presets[key]) }))}
+    onChange={(e, d) => { onLoad(JSON.parse(d.value)); }}/>
+);
 
 const Year = observer(({ scenario, db }) =>
   <LabelDropdown defaultValue={scenario.year}
     onChange={(e, d) => { scenario.setYear(d.value) }} options={
       Array.from({ length: db.maxYear - scenario.startYear + 1 }, (x, i) => i + scenario.startYear)
-        .map(e => ({ key: e, text: e, value: e }))}/>);
+        .map(e => ({ key: e, text: e, value: e }))}/>
+);
 
 const defaultTheater = 'Single Province';
 const Theater = observer(({ scenario, db }) =>
@@ -81,7 +83,8 @@ const AirSuperiority = observer(({ scenario }) =>
       <Checkbox checked={scenario.air.buffed}
         label={{ children: <abbr title={tips.airWithDoctrine}>With Air Doctrine</abbr> }}
         onChange={(e, d) => { scenario.setAir({ buffed: d.checked }); }}/> }
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const Preparation = observer(({ scenario }) =>
   <React.Fragment>
@@ -91,7 +94,8 @@ const Preparation = observer(({ scenario }) =>
     <Checkbox checked={scenario.entrenchment}
       label={{ children: <abbr title={tips.entrenchment}>Entrenchment</abbr> }}
       onChange={(e, d) => { scenario.setEntrenchment(d.checked); }} />
-  </React.Fragment>);
+  </React.Fragment>
+);
 
 const TechnologyBonuses = observer(({ scenario }) =>
   <Drawer title='Technology Bonuses'>
@@ -106,7 +110,7 @@ const ScenarioEditor = observer(props =>
     <Header size='medium' dividing>
       Scenario
       <Label size='medium' as='a' basic onClick={props.onReset}>Reset</Label>
-      <Presets/>
+      <Presets {...props}/>
     </Header>
     <List>
       <List.Item>
@@ -145,6 +149,7 @@ const ScenarioEditor = observer(props =>
         <DivisionEditor division={props.scenario.defender.division} {...props}/>
       </Grid.Column>
     </Grid>
-  </Container>);
+  </Container>
+);
 
 export default ScenarioEditor;

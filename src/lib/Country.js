@@ -16,10 +16,10 @@ const defaultProps = {
   ideas: [],
   doctrine: 'SFRR',
   fieldMarshal: {
-    level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [],
+    level: 4, attack: 3, defense: 3, logistics: 3, planning: 3, traits: [],
   },
   general: {
-    level: 1, attack: 1, defense: 1, logistics: 1, planning: 1, traits: [],
+    level: 4, attack: 3, defense: 3, logistics: 3, planning: 3, traits: [],
   },
   division: {},
   upgrades: {},
