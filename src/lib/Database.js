@@ -68,8 +68,16 @@ class Database {
 
   @computed get terrainNames() {
     const { categories } = this.common.terrain;
-    const names = Object.keys(categories).filter(e => !categories[e].is_water && e !== 'unknown');
-    return [...names, 'fort', 'river', 'amphibious'];
+    return Object.keys(categories).filter(e => !categories[e].is_water && e !== 'unknown');
+  }
+
+  @computed get environmentNames() {
+    // TODO: Does paradrop ignore terrain?
+    return ['fort', 'river', 'amphibious'];
+  }
+
+  @computed get combatModifierNames() {
+    return [...this.terrainNames, 'fort', 'river', 'amphibious'];
   }
 
   // Returns bonus list by year by doctrine name.

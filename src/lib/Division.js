@@ -29,10 +29,6 @@ class Division {
     this.country = country;
   }
 
-  @computed get year() {
-    return this.country.year;
-  }
-
   @action addUnit(name) {
     this.units[name] = 1 + (this.units[name] || 0);
     this.validateUnits(this.units);
@@ -112,7 +108,7 @@ class Division {
     const defaults = {};
     this.neededArchetypes.forEach((arch) => {
       const possible = this.possibleEquipmentNames[arch].slice().reverse();
-      const chosen = possible.find(e => equipments[e].year <= this.year) || possible.pop();
+      const chosen = possible.find(e => equipments[e].year <= this.country.year) || possible.pop();
       assert(chosen, 'No equipment possible');
       defaults[arch] = chosen;
     });
@@ -240,7 +236,7 @@ class Division {
     total.max_organisation = all.length && total.max_organisation / all.length;
     total.training_time = max(all.map(e => e.training_time));
 
-    this.db.terrainNames.forEach((terrain) => {
+    this.db.combatModifierNames.forEach((terrain) => {
       const bonus = {};
       ['movement', 'attack', 'defence'].forEach((type) => {
         if (frontline.length && frontlineTotal[terrain] && frontlineTotal[terrain][type]) {
@@ -260,7 +256,7 @@ class Division {
     return total;
   }
 
-  @computed get fullStats() {
+  @computed get stats() {
     const result = new Bonus();
     result.add(this.templateStats);
     result.add(this.country.countryBonus);
@@ -282,7 +278,7 @@ class Division {
     return result;
   }
 
-  getTypeDefenceBonus(bonus) {
+  getTypeDefendBonus(bonus) {
     let result = 0;
     result += bonus.army_defence_factor || 0;
     const types = this.types;
@@ -296,25 +292,40 @@ class Division {
     return result;
   }
 
-  getAttackModifiers(isAttacker, numDivisions, combatWidth, ) {
-    const result = {};
+  getCombatModifiers(isAttacker) {
+    const attack = {};
+    const defend = {};
 
     // Commander Skill
-    result.BM_LEADER_BONUS = this.getTypeAttackBonus(this.country.commanderBonus);
+    attack.BM_LEADER_BONUS = this.getTypeAttackBonus(this.country.commanderBonus) +
+      this.country.commanderBonus.offence;
+    defend.BM_LEADER_BONUS = this.getTypeDefendBonus(this.country.commanderBonus) +
+      this.country.commanderBonus.defence;
 
     // Country
-    result.BM_COUNTRY_BONUS = this.getTypeAttackBonus(this.country.commanderBonus);
+    attack.BM_COUNTRY_BONUS = this.getTypeAttackBonus(this.country.countryBonus);
+    defend.BM_COUNTRY_BONUS = this.getTypeDefendBonus(this.country.countryBonus);
 
     // Entrenchment
-    // TODO
+    // TODO: verify
+    if (!isAttacker && this.country.scenario.entrenchment) {
+      const { UNIT_DIGIN_CAP, DIG_IN_FACTOR } = this.db.common.defines.NDefines.NMilitary;
+      const level = UNIT_DIGIN_CAP + this.stats.entrenchment +
+        this.stats.max_dig_in * (1 + this.stats.max_dig_in_factor);
+      attack.BM_DUGIN_MODIFIER = level * DIG_IN_FACTOR;
+      defend.BM_DUGIN_MODIFIER = level * DIG_IN_FACTOR;
+    }
 
     // Experience
     const { EXPERIENCE_COMBAT_FACTOR } = this.db.common.defines.NDefines.NMilitary;
     const level = 1;
-    result.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
+    attack.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
+    defend.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
 
     // Planning Bonus
-    // TODO
+    if (isAttacker && this.country.scenario.planning) {
+      attack.PLANNING_MAX
+    }
 
     // Exceeding Combat Width
     // TODO

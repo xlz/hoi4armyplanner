@@ -62,16 +62,20 @@ const Terrain = observer(({ scenario, db, l10n }) =>
       <LabelDropdown defaultValue={scenario.terrain}
         onChange={(e, d) => { scenario.setTerrain(d.value); }}
         options={db.terrainNames.map(e => ({ key: e, text: l10n.terrain[e] || capitalize(e), value: e }))}/>}
+    { !scenario.theater.continent &&
+      <LabelDropdown placeholder='Modifier' defaultValue={scenario.environment}
+        onChange={(e, d) => { scenario.setEnvironment(d.value); }}
+        options={['', ...db.environmentNames].map(e => ({ key: e, text: e ? capitalize(e) : '(None)', value: e }))}/>}
+    { !scenario.theater.continent && scenario.possibleEnvironmentParameter &&
+      <LabelDropdown value={scenario.environmentParameter} placeholder='Level'
+        onChange={(e, d) => { scenario.setEnvironmentParameter(d.value); }}
+        options={scenario.possibleEnvironmentParameter.map(e => ({ key: e, text: capitalize(e), value: e }))}/>}
     { scenario.theater.continent &&
       <Label size='medium' basic>
         <abbr title={Object.keys(scenario.averageTerrain)
           .map(e => `${l10n.terrain[e]} ${(scenario.averageTerrain[e] * 100).toFixed(0)}%`)
           .join('\n') || 'No Region Selected'}>Theater Average</abbr>
       </Label> }
-    { scenario.possibleTerrainParameter &&
-      <LabelDropdown value={scenario.terrainParameter} placeholder='Level'
-        onChange={(e, d) => { scenario.setTerrainParameter(d.value); }}
-        options={scenario.possibleTerrainParameter.map(e => ({ key: e, text: capitalize(e), value: e }))}/>}
   </React.Fragment>
 );
 
