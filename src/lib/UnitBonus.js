@@ -32,12 +32,6 @@ const props = {
   build_cost_ic: 0,
   hardness: 0,
 
-  //special_forces
-  //marines
-  //cavalry
-  //type
-  //can_be_parachuted
-
   forest: undefined,
   hills: undefined,
   mountain: undefined,

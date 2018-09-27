@@ -20,11 +20,11 @@ class EquipmentBonus {
     this.add(obj);
   }
 
-  add(obj) {
+  add(obj, n = 1) {
     if (!obj) return;
     keys.forEach((key) => {
       if (key in obj) {
-        this[key] += obj[key];
+        this[key] += obj[key] * n;
       }
     });
   }

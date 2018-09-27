@@ -33,10 +33,6 @@ class Division {
     return this.country.year;
   }
 
-  @computed get bonus() {
-    return this.country.bonus;
-  }
-
   @action addUnit(name) {
     this.units[name] = 1 + (this.units[name] || 0);
     this.validateUnits(this.units);
@@ -143,13 +139,47 @@ class Division {
     return result;
   }
 
-  // seems redundant
-  @computed get equipmentStats() {
-    const stats = {};
-    this.neededArchetypes.forEach((arch) => {
-      stats[arch] = this.equipments[arch].stats;
+  @computed get types() {
+    const result = {};
+    let maxUnit = null;
+    let max = -1;
+    Object.keys(this.units).forEach((unitName) => {
+      const count = this.units[unitName];
+      if (!count) return;
+      const unit = this.db.common.sub_units[unitName];
+      const priority = unit.priority * count;
+      if (priority > max) {
+        max = priority;
+        maxUnit = unit;
+      }
     });
-    return stats;
+    if (maxUnit) {
+      if (Array.isArray(maxUnit.type)) {
+        maxUnit.type.forEach((type) => {
+          result[type] = true;
+        });
+      }
+      if (maxUnit.special_forces === 'yes') {
+        result.special_forces = true;
+      }
+      if (maxUnit.cavalry === 'yes') {
+        result.cavalry = true;
+      }
+    }
+    return result;
+  }
+
+  @computed get parachutable() {
+    let result = true;
+    Object.keys(this.units).forEach((unitName) => {
+      const count = this.units[unitName];
+      if (!count) return;
+      const unit = this.db.common.sub_units[unitName];
+      if (unit.can_be_parachuted !== 'yes') {
+        result = false;
+      }
+    });
+    return result;
   }
 
   getUnitStats(unitName) {
@@ -169,7 +199,7 @@ class Division {
     return { ...unitBonus, ...eqBase.apply(unitBonus), build_cost_ic, maximum_speed };
   }
 
-  @computed get stats() {
+  @computed get templateStats() {
     const total = new UnitBonus();
     const frontlineTotal = new Bonus();
     const supportTotal = new Bonus();
@@ -225,10 +255,130 @@ class Division {
       }
     });
 
-    // TODO: type
     // TODO: minimum consumption
     total.add(this.country.templateBonus);
     return total;
+  }
+
+  @computed get fullStats() {
+    const result = new Bonus();
+    result.add(this.templateStats);
+    result.add(this.country.countryBonus);
+    result.add(this.country.commanderBonus);
+    return result;
+  }
+
+  getTypeAttackBonus(bonus) {
+    let result = 0;
+    result += bonus.army_attack_factor || 0;
+    const types = this.types;
+    if (types.infantry) result += bonus.army_infantry_attack_factor || 0;
+    if (types.armor) result += bonus.army_armor_attack_factor || 0;
+    if (types.artillery) result += bonus.army_artillery_attack_factor || 0;
+    if (types.cavalry) result += bonus.cavalry_attack_factor || 0;
+    if (types.mechanized) result += bonus.mechanized_attack_factor || 0;
+    if (types.motorized) result += bonus.motorized_attack_factor || 0;
+    if (types.special_forces) result += bonus.special_forces_attack_factor || 0;
+    return result;
+  }
+
+  getTypeDefenceBonus(bonus) {
+    let result = 0;
+    result += bonus.army_defence_factor || 0;
+    const types = this.types;
+    if (types.infantry) result += bonus.army_infantry_defence_factor || 0;
+    if (types.armor) result += bonus.army_armor_defence_factor || 0;
+    if (types.artillery) result += bonus.army_artillery_defence_factor || 0;
+    if (types.cavalry) result += bonus.cavalry_defence_factor || 0;
+    if (types.mechanized) result += bonus.mechanized_defence_factor || 0;
+    if (types.motorized) result += bonus.motorized_defence_factor || 0;
+    if (types.special_forces) result += bonus.special_forces_defence_factor || 0;
+    return result;
+  }
+
+  getAttackModifiers(isAttacker, numDivisions, combatWidth, ) {
+    const result = {};
+
+    // Commander Skill
+    result.BM_LEADER_BONUS = this.getTypeAttackBonus(this.country.commanderBonus);
+
+    // Country
+    result.BM_COUNTRY_BONUS = this.getTypeAttackBonus(this.country.commanderBonus);
+
+    // Entrenchment
+    // TODO
+
+    // Experience
+    const { EXPERIENCE_COMBAT_FACTOR } = this.db.common.defines.NDefines.NMilitary;
+    const level = 1;
+    result.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
+
+    // Planning Bonus
+    // TODO
+
+    // Exceeding Combat Width
+    // TODO
+
+    // Stacking Penalty
+    // TODO
+
+    // Enemy air superiority
+    // Enemy air superiority reduction
+    // Night
+    // Low Supply
+
+    // Terrain
+    // Fort
+    // Naval Penalty
+    // River crossing
+
+    // TODO:
+    // Shore Bombardment
+    // Paradrop
+
+    // Not modeled:
+    // Air support
+    // Attacking from multiple directions
+    // Border War Organization
+    // Commander Ability Bonus
+    // Commitment to the War
+    // Decryption Advantage
+    // Encirclement Penalty
+    // In multiple combat
+    // Multiple attackers (BM_ENVELOPMENT_PENALTY) - Not used in game?
+    // Weather
+  }
+
+  @computed get defendModifiers() {
+    // Commander Skill
+    // Experience
+    // Decryption Advantage
+    // Commander Ability Bonus
+    // Entrenchment
+
+    // Exceeding Combat Width
+    // Encirclement Penalty
+    // Naval Penalty
+    // Fort
+    // Enemy air superiority
+    // Enemy air superiority reduction
+    // River crossing
+    // Night
+    // Country
+    // Terrain
+    // Planning Bonus
+    // Low Supply
+    // Stacking Penalty
+
+    // Multiple attackers (BM_ENVELOPMENT_PENALTY) - Not used in game?
+    // Commitment to the War - not modeled
+    // Weather - not modeled
+    // In multiple combat - not modeled
+    // Air support - not modeled
+    // Shore Bombardment - not modeled
+    // Paradrop - not modeled
+    // Attacking from multiple directions - not modeled
+    // Border War Organization - not modeled
   }
 
   @computed get code() {

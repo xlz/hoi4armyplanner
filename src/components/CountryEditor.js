@@ -8,7 +8,7 @@ import Drawer from './Drawer';
 
 const MyDropdown = ({ value, options, onChange }) =>
   <LabelDropdown placeholder='true' value={value} inline
-    text={options.filter(e => e.value === value)[0].text}>
+    text={options.find(e => e.value === value).text}>
     <Dropdown.Menu>
       { options.map(e => <Dropdown.Item key={e.value} {...e} onClick={onChange}
           active={value === e.value} selected={value === e.value}/>) }

@@ -119,7 +119,7 @@ class Database {
     });
     const doctrineSteps = {};
     doctrinePathIndex.forEach((pathIndex) => {
-      const firstCategory = doctrines[pathIndex.path[0]].categories.filter(e => e !== 'land_doctrine')[0];
+      const firstCategory = doctrines[pathIndex.path[0]].categories.find(e => e !== 'land_doctrine');
       const categoryShort = firstCategory.split('_').slice(1).map(e => e[0].toUpperCase()).join('');
       const branchingsName = pathIndex.branchings.map(e => ['L', 'R'][e]).join('');
       const pathName = categoryShort + branchingsName;
@@ -219,7 +219,7 @@ class Database {
     const getLevels = (obj) => {
       const res = {};
       Object.keys(obj).forEach((level) => {
-        res[level] = obj[level].filter(e => e.type === leaderType)[0];
+        res[level] = obj[level].find(e => e.type === leaderType);
       });
       return res;
     };

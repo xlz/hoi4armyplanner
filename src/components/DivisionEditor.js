@@ -25,7 +25,7 @@ function round51(num) {
     const { l10n } = db;
     const units = division.units;
     const possibleUnits = division.possibleUnits;
-    const s = division.stats;
+    const s = division.templateStats;
     const extra = new UnitBonus(s);
 
     return <React.Fragment>

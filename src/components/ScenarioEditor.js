@@ -68,6 +68,10 @@ const Terrain = observer(({ scenario, db, l10n }) =>
           .map(e => `${l10n.terrain[e]} ${(scenario.averageTerrain[e] * 100).toFixed(0)}%`)
           .join('\n') || 'No Region Selected'}>Theater Average</abbr>
       </Label> }
+    { scenario.possibleTerrainParameter &&
+      <LabelDropdown value={scenario.terrainParameter} placeholder='Level'
+        onChange={(e, d) => { scenario.setTerrainParameter(d.value); }}
+        options={scenario.possibleTerrainParameter.map(e => ({ key: e, text: capitalize(e), value: e }))}/>}
   </React.Fragment>
 );
 

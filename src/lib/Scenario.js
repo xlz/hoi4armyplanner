@@ -7,6 +7,7 @@ const defaultProps = {
   year: 1936,
   theater: {},
   terrain: 'plains',
+  terrainParameter: undefined,
   air: { winner: null, buffed: false },
   planning: false,
   entrenchment: true,
@@ -16,6 +17,7 @@ class Scenario {
   @observable year;
   @observable theater;
   @observable terrain;
+  @observable terrainParameter;
   @observable air;
   @observable planning;
   @observable entrenchment;
@@ -79,7 +81,24 @@ class Scenario {
   }
 
   @action setTerrain(value) {
+    if (value !== this.terrain) {
+      this.terrainParameter = undefined;
+    }
     this.terrain = value;
+  }
+
+  @action setTerrainParameter(value) {
+    this.terrainParameter = value;
+  }
+
+  @computed get possibleTerrainParameter() {
+    if (this.terrain === 'fort') {
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(e => '' + e);
+    }
+    if (this.terrain === 'river') {
+      return ['small', 'large'];
+    }
+    return false;
   }
 
   @action setAir(value) {

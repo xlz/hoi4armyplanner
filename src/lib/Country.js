@@ -311,7 +311,7 @@ class Country {
     const factor = (commanderType === 'field_marshal' ? FIELD_MARSHAL_ARMY_BONUS_RATIO : 1);
     ['attack', 'defense', 'logistics', 'planning'].forEach((type) => {
       const skills = this.db.common.unit_leader[`leader_${type}_skills`][props[type]];
-      const skill = skills.filter(e => e.type === commanderType)[0];
+      const skill = skills.find(e => e.type === commanderType);
       bonus.add(skill.modifier, factor);
     });
     props.traits.forEach((traitName) => {

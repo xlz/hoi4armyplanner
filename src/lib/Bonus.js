@@ -102,7 +102,7 @@ function addInternal(dst, src, n) {
     }
   });
 }
-
+/*
 function applyInternal(stats, bonus) {
   const out = { ...stats };
   Object.keys(bonus).forEach((key) => {
@@ -124,7 +124,7 @@ function applyInternal(stats, bonus) {
   });
   return out;
 }
-
+*/
 class Bonus {
   constructor(obj) {
     this.add(obj);
@@ -134,11 +134,12 @@ class Bonus {
     if (!obj) return;
     addInternal(this, obj, n);
   }
-
+/*
   applyTo(obj) {
     assert(obj);
     return applyInternal(obj, this);
   }
+*/
 }
 
 export default Bonus;
