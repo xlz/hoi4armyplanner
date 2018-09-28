@@ -295,6 +295,7 @@ class Division {
   getCombatModifiers(isAttacker) {
     const attack = {};
     const defend = {};
+    const { NMilitary } = this.db.common.defines.NDefines;
 
     // Commander Skill
     attack.BM_LEADER_BONUS = this.getTypeAttackBonus(this.country.commanderBonus) +
@@ -309,7 +310,7 @@ class Division {
     // Entrenchment
     // TODO: verify
     if (!isAttacker && this.country.scenario.entrenchment) {
-      const { UNIT_DIGIN_CAP, DIG_IN_FACTOR } = this.db.common.defines.NDefines.NMilitary;
+      const { UNIT_DIGIN_CAP, DIG_IN_FACTOR } = NMilitary;
       const level = UNIT_DIGIN_CAP + this.stats.entrenchment +
         this.stats.max_dig_in * (1 + this.stats.max_dig_in_factor);
       attack.BM_DUGIN_MODIFIER = level * DIG_IN_FACTOR;
@@ -317,18 +318,22 @@ class Division {
     }
 
     // Experience
-    const { EXPERIENCE_COMBAT_FACTOR } = this.db.common.defines.NDefines.NMilitary;
+    const { EXPERIENCE_COMBAT_FACTOR } = NMilitary;
     const level = 1;
     attack.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
     defend.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
 
     // Planning Bonus
+    // TODO: verify
     if (isAttacker && this.country.scenario.planning) {
-      attack.PLANNING_MAX
+      const { PLANNING_MAX } = NMilitary;
+      attack.BM_PLANNING = PLANNING_MAX + this.stats.max_planning;
+      defend.BM_PLANNING = PLANNING_MAX + this.stats.max_planning;
     }
 
     // Exceeding Combat Width
-    // TODO
+    const { BASE_COMBAT_WIDTH, COMBAT_OVER_WIDTH_PENALTY } = NMilitary;
+    // TODO: ???
 
     // Stacking Penalty
     // TODO
