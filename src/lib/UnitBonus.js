@@ -32,6 +32,7 @@ const props = {
   build_cost_ic: 0,
   hardness: 0,
 
+  // Can't initialize with {} which becomes singletons.
   forest: undefined,
   hills: undefined,
   mountain: undefined,

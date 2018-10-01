@@ -292,10 +292,12 @@ class Division {
     return result;
   }
 
-  getCombatModifiers(isAttacker) {
+  getCombatModifiers(isAttacker, terrain = this.country.scenario.terrain) {
     const attack = {};
     const defend = {};
-    const { NMilitary } = this.db.common.defines.NDefines;
+    const { NMilitary, NNavy } = this.db.common.defines.NDefines;
+    const terrains = this.db.comomn.terrain.categories;
+    const { scenario } = this.country;
 
     // Commander Skill
     attack.BM_LEADER_BONUS = this.getTypeAttackBonus(this.country.commanderBonus) +
@@ -308,46 +310,134 @@ class Division {
     defend.BM_COUNTRY_BONUS = this.getTypeDefendBonus(this.country.countryBonus);
 
     // Entrenchment
-    // TODO: verify
-    if (!isAttacker && this.country.scenario.entrenchment) {
+    if (!isAttacker && scenario.entrenchment) {
       const { UNIT_DIGIN_CAP, DIG_IN_FACTOR } = NMilitary;
-      const level = UNIT_DIGIN_CAP + this.stats.entrenchment +
-        this.stats.max_dig_in * (1 + this.stats.max_dig_in_factor);
-      attack.BM_DUGIN_MODIFIER = level * DIG_IN_FACTOR;
-      defend.BM_DUGIN_MODIFIER = level * DIG_IN_FACTOR;
+      const level = (UNIT_DIGIN_CAP + this.stats.entrenchment + (this.stats.max_dig_in || 0)) *
+        (1 + (this.stats.max_dig_in_factor || 0));
+      const bonus = DIG_IN_FACTOR * level;
+      attack.BM_DUGIN_MODIFIER = bonus;
+      defend.BM_DUGIN_MODIFIER = bonus;
     }
 
     // Experience
-    const { EXPERIENCE_COMBAT_FACTOR } = NMilitary;
-    const level = 1;
-    attack.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
-    defend.BM_EXPERIENCE = EXPERIENCE_COMBAT_FACTOR * level;
+    {
+      const { EXPERIENCE_COMBAT_FACTOR } = NMilitary;
+      const level = 1;
+      const bonus = EXPERIENCE_COMBAT_FACTOR * level;
+      attack.BM_EXPERIENCE = bonus;
+      defend.BM_EXPERIENCE = bonus;
+    }
 
     // Planning Bonus
-    // TODO: verify
-    if (isAttacker && this.country.scenario.planning) {
+    if (isAttacker && scenario.planning) {
       const { PLANNING_MAX } = NMilitary;
-      attack.BM_PLANNING = PLANNING_MAX + this.stats.max_planning;
-      defend.BM_PLANNING = PLANNING_MAX + this.stats.max_planning;
+      const bonus = (PLANNING_MAX + (this.stats.max_planning || 0));
+      attack.BM_PLANNING = bonus;
+      defend.BM_PLANNING = bonus;
     }
 
     // Exceeding Combat Width
-    const { BASE_COMBAT_WIDTH, COMBAT_OVER_WIDTH_PENALTY } = NMilitary;
-    // TODO: ???
+    const { BASE_COMBAT_WIDTH, COMBAT_OVER_WIDTH_PENALTY, COMBAT_OVER_WIDTH_PENALTY_MAX } = NMilitary;
+    const allowedWidth = BASE_COMBAT_WIDTH;
+    const maxWidth = (COMBAT_OVER_WIDTH_PENALTY_MAX / COMBAT_OVER_WIDTH_PENALTY + 1) * allowedWidth;
+    const maxUnits = Math.min(Math.floor(maxWidth / this.stats.combat_width), scenario.density);
+    const totalWidth = Math.floor(maxUnits * this.stats.combat_width);
+    {
+      const penalty = (totalWidth - allowedWidth) * COMBAT_OVER_WIDTH_PENALTY / 100;
+      attack.BM_WIDTH = penalty;
+      defend.BM_WIDTH = penalty;
+    }
 
     // Stacking Penalty
-    // TODO
+    const { COMBAT_STACKING_START, COMBAT_STACKING_PENALTY } = NMilitary;
+    const allowedStacking = COMBAT_STACKING_START;
+    {
+      const penalty = Math.max(-0.99, Math.max(0, maxUnits - allowedStacking) * COMBAT_STACKING_PENALTY);
+      attack.BM_STACKING = penalty;
+      defend.BM_STACKING = penalty;
+    }
 
     // Enemy air superiority
-    // Enemy air superiority reduction
+    const { air } = scenario;
+    if ((isAttacker && air.winner === 'defender') || (!isAttacker && air.winner === 'attacker')) {
+      const {
+        ENEMY_AIR_SUPERIORITY_IMPACT,
+        ENEMY_AIR_SUPERIORITY_DEFENSE,
+        ENEMY_AIR_SUPERIORITY_DEFENSE_STEEPNESS,
+      } = NMilitary;
+      const enemy = isAttacker ? scenario.defender : scenario.attacker;
+      const airDoctrineMaxBonus = 0.3;
+      const superiorityBonus = (enemy.doctrineBonus.army_bonus_air_superiority_factor || 0) +
+        (air.buffed ? airDoctrineMaxBonus : 0) +
+        (terrains[terrain].enemy_army_bonus_air_superiority_factor || 0) +
+        (this.stats.enemy_army_bonus_air_superiority_factor || 0);
+      const superiority = 1.0;
+      const reduction = ENEMY_AIR_SUPERIORITY_DEFENSE *
+        this.stats.air_attack / (this.stats.air_attack + ENEMY_AIR_SUPERIORITY_DEFENSE_STEEPNESS);
+      const penalty = Math.min(0, superiority * (1 + superiorityBonus) * ENEMY_AIR_SUPERIORITY_IMPACT + reduction);
+      attack.BM_ENEMY_AIR_SUPERIORITY = penalty;
+      defend.BM_ENEMY_AIR_SUPERIORITY = penalty;
+    }
+
     // Night
+    const { BASE_NIGHT_ATTACK_PENALTY } = NMilitary;
+    attack.BM_NIGHT_MODIFIER = BASE_NIGHT_ATTACK_PENALTY + (this.stats.land_night_attack || 0);
+
     // Low Supply
+    const { COMBAT_SUPPLY_LACK_IMPACT } = NMilitary;
+    if (this.country.supply < 100) {
+      const penalty = COMBAT_SUPPLY_LACK_IMPACT * (1 - this.country.supply / 100);
+      attack.BM_SUPPLY = penalty;
+      defend.BM_SUPPLY = penalty;
+    }
 
     // Terrain
-    // Fort
-    // Naval Penalty
-    // River crossing
+    const terrainBaseBonus = terrains[terrain].units || {};
+    const terrainUnitBonus = this.stats[terrain] || {};
+    if (isAttacker) {
+      const bonus = (terrainBaseBonus.attack || 0) + (terrainUnitBonus.attack || 0);
+      attack.BM_TERRAIN = bonus;
+      defend.BM_TERRAIN = bonus;
+    } else {
+      const bonus = (terrainUnitBonus.defence || 0);
+      attack.BM_TERRAIN = bonus;
+      defend.BM_TERRAIN = bonus;
+    }
 
+    // Fort, River crossing, Naval Penalty
+    if (isAttacker && !scenario.theater.continent) {
+      if (scenario.environment === 'fort' && scenario.environmentParameter) {
+        const { BASE_FORT_PENALTY } = NMilitary;
+        const unitBonus = this.stats.fort || {};
+        const level = scenario.envionmentParameter;
+        const penalty = Math.min(0, BASE_FORT_PENALTY * level + (unitBonus.attack || 0));
+        attack.BM_FORT_MODIFIER = penalty;
+        defend.BM_FORT_MODIFIER = penalty;
+      } else if (scenario.environment === 'river' && scenario.environmentParameter) {
+        const { RIVER_CROSSING_PENALTY, RIVER_CROSSING_PENALTY_LARGE } = NMilitary;
+        attack.BM_RIVER_PENALTY = 0;
+        defend.BM_RIVER_PENALTY = 0;
+        const unitBonus = this.stats.river || {};
+        if (scenario.environmentParameter === 'large') {
+          attack.BM_RIVER_PENALTY += RIVER_CROSSING_PENALTY_LARGE + (unitBonus.attack || 0);
+          defend.BM_RIVER_PENALTY += RIVER_CROSSING_PENALTY_LARGE + (unitBonus.defend || 0);
+        } else {
+          attack.BM_RIVER_PENALTY += RIVER_CROSSING_PENALTY + (unitBonus.attack || 0);
+          defend.BM_RIVER_PENALTY += RIVER_CROSSING_PENALTY + (unitBonus.defend || 0);
+        }
+      } else if (scenario.environment === 'amphibious') {
+        const { AMPHIBIOUS_LANDING_PENALTY, AMPHIBIOUS_INVADE_LANDING_PENALTY_DECREASE } = NNavy;
+        const bonus = this.stats.amphibious_invasion_defence / AMPHIBIOUS_INVADE_LANDING_PENALTY_DECREASE;
+        const unknownFactor = 0.01;
+        const unitBonus = this.stats.amphibious || {};
+        const penalty = AMPHIBIOUS_LANDING_PENALTY + (unitBonus.attack || 0);
+        const penalty2 = penalty * (unknownFactor + Math.max(0, 1 - bonus));
+        attack.BM_AMPH_PENALTY = penalty2;
+        defend.BM_AMPH_PENALTY = penalty2;
+      }
+    }
+
+    return { attack, defend };
     // TODO:
     // Shore Bombardment
     // Paradrop
@@ -363,38 +453,6 @@ class Division {
     // In multiple combat
     // Multiple attackers (BM_ENVELOPMENT_PENALTY) - Not used in game?
     // Weather
-  }
-
-  @computed get defendModifiers() {
-    // Commander Skill
-    // Experience
-    // Decryption Advantage
-    // Commander Ability Bonus
-    // Entrenchment
-
-    // Exceeding Combat Width
-    // Encirclement Penalty
-    // Naval Penalty
-    // Fort
-    // Enemy air superiority
-    // Enemy air superiority reduction
-    // River crossing
-    // Night
-    // Country
-    // Terrain
-    // Planning Bonus
-    // Low Supply
-    // Stacking Penalty
-
-    // Multiple attackers (BM_ENVELOPMENT_PENALTY) - Not used in game?
-    // Commitment to the War - not modeled
-    // Weather - not modeled
-    // In multiple combat - not modeled
-    // Air support - not modeled
-    // Shore Bombardment - not modeled
-    // Paradrop - not modeled
-    // Attacking from multiple directions - not modeled
-    // Border War Organization - not modeled
   }
 
   @computed get code() {
